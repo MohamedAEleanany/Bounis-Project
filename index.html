@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحليل نتائج الامتحانات</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        /* Upload Form Styles */
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 5px;
+            margin-top: 3rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            text-align: right;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Results Styles */
+        .result-view {
+            display: none;
+            /* Hidden by default */
+            padding: 2rem 0;
+        }
+
+        .result-section {
+            margin-bottom: 3rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        .info-section,
+        .table-container {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: #007bff;
+        }
+
+        .table {
+            margin-bottom: 0;
+            text-align: center;
+            border-color: #dee2e6;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .fw-bold {
+            font-weight: 700 !important;
+        }
+
+        .fs-6 {
+            font-size: 1rem !important;
+        }
+
+        /* Print Styles */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 0.5cm 0.7cm 0.3cm 1cm;
+                /* تقليل الهامش الأيمن قليلاً */
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            /* إجبار تصغير الخط للعناصر ذات fs-6 في الطباعة */
+            .fs-6 {
+                font-size: 0.8rem !important;
+            }
+
+            #upload-view {
+                display: none !important;
+            }
+
+            .result-view {
+                display: block !important;
+                padding: 0;
+            }
+
+            .result-section {
+                margin: 0.15cm 0 !important;
+                padding: 0.15cm 0 !important;
+                page-break-inside: avoid;
+                border-bottom: 1px dashed #ccc;
+                /* خط فاصل أكثر وضوحاً */
+                background-color: white;
+                height: auto;
+                overflow: visible !important;
+                /* السماح بظهور الحدود المقصوصة */
+            }
+
+            /* عند تفعيل وضع مادتين في الصفحة (لدرجة 60) */
+            .print-2-per-page .result-section:nth-child(even) {
+                page-break-after: always;
+                border-bottom: none;
+            }
+
+            .result-section:last-child {
+                margin-bottom: 0;
+                border-bottom: none;
+            }
+
+            body {
+                background-color: white;
+                font-weight: bold;
+                padding: 0;
+            }
+
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 0;
+            }
+
+            .info-section,
+            .table-container {
+                border: none;
+                page-break-inside: avoid;
+                margin-bottom: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Hide Info Section in Print */
+            .info-section.no-print {
+                display: none !important;
+            }
+
+            h4.course-title {
+                margin-top: 0 !important;
+                margin-bottom: 0.2rem !important;
+                font-size: 1.2rem;
+            }
+
+            .table {
+                font-size: 0.8rem;
+                /* تكبير واضح */
+                width: 100% !important;
+                font-weight: bold;
+                color: #000 !important;
+                margin-bottom: 0.15rem !important;
+                border-left: 1px solid #dee2e6 !important;
+                /* إضافة الخط الأيسر بنفس لون الستايل */
+            }
+
+            .table th,
+            .table td,
+            .table strong {
+                padding: 0.15rem 0.2rem !important;
+                color: #000 !important;
+                height: auto !important;
+                line-height: 1.3;
+            }
+
+            .table thead th {
+                font-size: 0.85rem;
+            }
+
+            .table thead th,
+            .bg-gray-print {
+                background-color: #d3d3d3 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            h6 {
+                font-size: 0.7rem;
+                font-weight: bold;
+                margin-top: 0.2rem !important;
+                margin-bottom: 0.15rem !important;
+            }
+
+            .table-container.mt-3 {
+                margin-top: 0.2rem !important;
+            }
+
+            /* تصغير عرض الجدول في العرض المدمج */
+            .table-responsive {
+                padding-left: 0.8cm !important;
+                padding-right: 0.8cm !important;
+            }
+        }
+    </style>
+    <script>
+        // إخفاء نموذج الرفع فوراً إذا كان المستخدم عائداً من صفحة أخرى
+        (function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('return')) {
+                document.write('<style>#upload-view{display:none!important;}#results-view{display:block!important;}</style>');
+            }
+        })();
+    </script>
+</head>
+
+<body>
+
+
+    <div id="upload-view" class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="form-container">
+                    <form id="analysis-form">
+                        <div class="mb-3">
+                            <label class="form-label">ملفات الدرجات (يمكنك اختيار أكثر من ملف)</label>
+                            <input type="file" id="file-input" class="form-control" required accept=".csv, .xlsx, .xls"
+                                multiple>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">السنة الدراسية</label>
+                            <select class="form-select" id="academic-year" required>
+                                <option value="2025-2026" selected>2025-2026</option>
+                                <option value="2026-2027">2026-2027</option>
+                                <option value="2027-2028">2027-2028</option>
+                                <option value="2028-2029">2028-2029</option>
+                                <option value="2029-2030">2029-2030</option>
+                                <option value="2030-2031">2030-2031</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">اختر الدرجة (لجميع الملفات)</label>
+                            <select class="form-select" id="max-score" required>
+                                <option value="" selected disabled>اختر الدرجة</option>
+                                <option value="15">15</option>
+                                <option value="20">20</option>
+                                <option value="60">60</option>
+                                <option value="65">65</option>
+                                <option value="70">70</option>
+                                <option value="75">75</option>
+                                <option value="80">80</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">عدد الدرجات المضافة</label>
+                            <input type="number" id="max-curve" class="form-control" value="10" min="0" max="50">
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary" id="submit-btn">
+                                + حساب النتائج
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="results-view" class="result-view container">
+        <div class="text-center no-print mb-4 mt-3">
+            <button onclick="window.print()" class="btn btn-success me-2">
+                🖨️ طباعة
+            </button>
+            <button onclick="viewStatistics()" class="btn btn-primary me-2">
+                📊 الإحصائيات الإجمالية
+            </button>
+            <button onclick="viewBonusAppliedStatistics()" class="btn btn-success me-2">
+                ✨ النسبة بعد تطبيق البونص
+            </button>
+            <button onclick="viewStudentGrades()" class="btn btn-info me-2">
+                📝 درجات الطلاب
+            </button>
+            <button onclick="toggleViewMode()" class="btn btn-warning me-2 text-white">
+                📄 عرض مدمج
+            </button>
+            <button onclick="resetAndAnalyzeNew()" class="btn btn-secondary">
+                ← تحليل ملف آخر
+            </button>
+        </div>
+
+        <div id="results-container">
+
+        </div>
+
+        <div class="text-center no-print mt-4 pb-5">
+
+        </div>
+    </div>
+
+    <!-- SheetJS Library -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- App Script -->
+    <script src="script.js"></script>
+</body>
+
+</html>
