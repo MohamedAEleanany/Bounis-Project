@@ -293,14 +293,14 @@
             if (!ctx) return;
 
             new Chart(ctx, {
-                type: 'doughnut',
+                type: 'pie',
                 data: {
-                    labels: ['نسبة النجاح', 'نسبة الرسوب'],
+                    labels: ['نسبة النجاح', 'نسبة السقوط'],
                     datasets: [{
                         data: [successPercentage, failPercentage],
                         backgroundColor: [
-                            '#28a745',
-                            '#dc3545'
+                            '#4472C4',
+                            '#E61B1B'
                         ],
                         borderWidth: 2,
                         borderColor: '#fff'
@@ -311,20 +311,22 @@
                     maintainAspectRatio: true,
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: 'top',
                             labels: {
                                 font: {
                                     family: 'Cairo',
                                     size: 14,
                                     weight: 'bold'
                                 },
-                                padding: 20
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
                             }
                         },
                         tooltip: {
                             callbacks: {
                                 label: function (context) {
-                                    return context.label + ': ' + context.parsed.toFixed(2) + '%';
+                                    return context.label + ': ' + context.parsed.toFixed(1) + '%';
                                 }
                             },
                             titleFont: {
@@ -341,7 +343,7 @@
                             color: '#fff',
                             font: {
                                 family: 'Cairo',
-                                size: 20,
+                                size: 18,
                                 weight: 'bold'
                             },
                             formatter: function (value) {
@@ -349,28 +351,7 @@
                             }
                         }
                     }
-                },
-                plugins: [{
-                    id: 'centerText',
-                    beforeDraw: function (chart) {
-                        const width = chart.width;
-                        const height = chart.height;
-                        const ctx = chart.ctx;
-                        ctx.restore();
-
-                        const fontSize = (height / 114).toFixed(2);
-                        ctx.font = `bold ${fontSize}em Cairo`;
-                        ctx.textBaseline = 'middle';
-                        ctx.fillStyle = '#28a745';
-
-                        const text = successPercentage.toFixed(1) + '%';
-                        const textX = Math.round((width - ctx.measureText(text).width) / 2);
-                        const textY = height / 2;
-
-                        ctx.fillText(text, textX, textY);
-                        ctx.save();
-                    }
-                }]
+                }
             });
         }
 
