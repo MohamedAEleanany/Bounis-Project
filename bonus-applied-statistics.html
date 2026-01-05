@@ -315,16 +315,20 @@
                     <div class="chart-container" style="max-width: 300px;">
                         <canvas id="chart-50-${index}"></canvas>
                         <p style="text-align: center; font-weight: 600; margin-top: 0.5rem;">نسبة النجاح عند 50%</p>
+                        <p style="text-align: center; font-weight: 700; font-size: 1.2rem; color: #28a745; margin-top: 0.25rem;">${successPercentage50.toFixed(2)}%</p>
                     </div>
                     <div class="chart-container" style="max-width: 300px;">
                         <canvas id="chart-60-${index}"></canvas>
                         <p style="text-align: center; font-weight: 600; margin-top: 0.5rem;">نسبة النجاح عند 60%</p>
+                        <p style="text-align: center; font-weight: 700; font-size: 1.2rem; color: #007bff; margin-top: 0.25rem;">${successPercentage60.toFixed(2)}%</p>
                     </div>
                 </div>
             ` : `
                 <div class="${chartWrapperClass}">
                     <div class="chart-container">
                         <canvas id="chart-${index}"></canvas>
+                        <p style="text-align: center; font-weight: 600; margin-top: 0.5rem; margin-bottom: 0.25rem;">نسبة النجاح عند 50%</p>
+                        <p style="text-align: center; font-weight: 700; font-size: 1.2rem; color: #28a745; margin-top: 0;">${successPercentage50.toFixed(2)}%</p>
                     </div>
                 </div>
             `;
@@ -473,7 +477,7 @@
                             }
                         },
                         datalabels: {
-                            display: true, // إظهار الـ labels الداخلية
+                            display: true,
                             color: '#fff',
                             font: {
                                 family: 'Cairo',
@@ -512,10 +516,19 @@
         }
 
         function printPage() {
+            // إعادة رسم جميع الـ Charts لضمان ظهور الـ datalabels في الطباعة
+            if (window.Chart && window.Chart.instances) {
+                Object.values(window.Chart.instances).forEach(chart => {
+                    if (chart && chart.update) {
+                        chart.update();
+                    }
+                });
+            }
+
             // إعطاء وقت للمتصفح لرسم الـ Charts قبل الطباعة
             setTimeout(function () {
                 window.print();
-            }, 500);
+            }, 800);
         }
 
         // تحميل الإحصائيات عند فتح الصفحة
@@ -523,8 +536,15 @@
 
         // إعادة رسم الـ Charts قبل الطباعة لضمان ظهورها
         window.addEventListener('beforeprint', function () {
-            // إعطاء وقت إضافي للمتصفح
             console.log('Preparing charts for printing...');
+            // إعادة رسم جميع الـ Charts
+            if (window.Chart && window.Chart.instances) {
+                Object.values(window.Chart.instances).forEach(chart => {
+                    if (chart && chart.update) {
+                        chart.update();
+                    }
+                });
+            }
         });
     </script>
 </body>
