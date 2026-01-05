@@ -348,7 +348,7 @@ function createVerticalResultElement(result, index) {
     let table60Html = '';
     if (result.maxScore === 60) {
         const threshold60 = result.maxScore * 0.6; // 36
-        const maxCurve = result.curveData.length > 0 ? result.curveData[result.curveData.length - 1].added : 10;
+        const maxCurve = 10; // استخدام 10 دائماً لجدول 60%
         let curveData60 = [];
 
         for (let added = 0; added <= maxCurve; added++) {
@@ -367,6 +367,8 @@ function createVerticalResultElement(result, index) {
             if (percentage >= 100) break;
         }
 
+        console.log('curveData60 في renderResults:', curveData60);
+        console.log('عدد العناصر:', curveData60.length);
         table60Html = buildDetailedTable('إحصائيات النجاح (60%)', threshold60, curveData60);
     }
 
@@ -443,7 +445,8 @@ function createResultElement(result, index) {
         const currentThreshold = result.maxScore * 0.6;
 
         let curveData60 = [];
-        for (let added = 0; added <= (result.curveData.length > 0 ? result.curveData[result.curveData.length - 1].added : 10); added++) {
+        const maxCurve = 10; // استخدام 10 دائماً لجدول 60%
+        for (let added = 0; added <= maxCurve; added++) {
             let passedCount = 0;
             result.scores.forEach(score => {
                 const newScore = score + added;
