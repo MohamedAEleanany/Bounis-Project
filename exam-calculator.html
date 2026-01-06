@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة درجات الامتحان</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background-color: white;
+            color: #212529;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 0.375rem 0.375rem 0 0 !important;
+            padding: 1rem 1.25rem;
+        }
+
+        .card-header h4 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #212529;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 0.375rem;
+            border: 1px solid #ced4da;
+            padding: 0.375rem 0.75rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border: 1px solid #0d6efd;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-weight: 400;
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+
+        .btn-success {
+            background-color: #198754;
+            border: 1px solid #198754;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-weight: 400;
+        }
+
+        .btn-success:hover {
+            background-color: #157347;
+            border-color: #146c43;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: 1px solid #dc3545;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-weight: 400;
+        }
+
+        .btn-danger:hover {
+            background-color: #bb2d3b;
+            border-color: #b02a37;
+        }
+
+        .btn-info {
+            background-color: #0dcaf0;
+            border: 1px solid #0dcaf0;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-weight: 400;
+            color: #000;
+        }
+
+        .btn-info:hover {
+            background-color: #31d2f2;
+            border-color: #25cff2;
+            color: #000;
+        }
+
+        .paragraph-item {
+            background-color: #f8f9fa;
+            border-radius: 0.375rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .question-group {
+            background: white;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .result-box {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+            border-radius: 0.375rem;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .result-box h3 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .result-box p {
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+        }
+
+        .alert-custom {
+            border-radius: 0.375rem;
+            padding: 1rem 1.25rem;
+        }
+
+        .alert-info {
+            background-color: #cff4fc;
+            border: 1px solid #b6effb;
+            color: #055160;
+        }
+
+        .alert-success {
+            background-color: #d1e7dd;
+            border: 1px solid #badbcc;
+            color: #0f5132;
+        }
+
+        .header-title {
+            text-align: center;
+            color: #212529;
+            margin-bottom: 2rem;
+        }
+
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-title p {
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+
+        .table {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .table-primary {
+            background-color: #cfe2ff;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            font-family: 'Cairo', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-title">
+            <h1><i class="bi bi-calculator-fill"></i> حاسبة درجات الامتحان</h1>
+        </div>
+
+        <!-- Step 1: Number of Paragraphs -->
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-1-circle-fill"></i> عدد فقرات الامتحان</h4>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label for="numParagraphs" class="form-label">كم فقرة في الامتحان؟</label>
+                        <input type="number" class="form-control" id="numParagraphs" min="1" value="2"
+                            placeholder="أدخل عدد الفقرات">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary w-100" onclick="generateParagraphs()">
+                            <i class="bi bi-arrow-left-circle"></i> التالي
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Paragraph Details -->
+        <div class="card" id="paragraphsCard" style="display: none;">
+            <div class="card-header">
+                <h4><i class="bi bi-2-circle-fill"></i> تفاصيل الفقرات</h4>
+            </div>
+            <div class="card-body">
+                <div id="paragraphsContainer"></div>
+                <button class="btn btn-success w-100 mt-3" onclick="calculateCurrentTotal()">
+                    <i class="bi bi-calculator"></i> احسب الدرجة الحالية
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Current Total -->
+        <div id="currentTotalCard" style="display: none;">
+            <div class="alert alert-info alert-custom">
+                <h4 class="alert-heading"><i class="bi bi-info-circle-fill"></i> الدرجة الحالية للامتحان</h4>
+                <hr>
+                <div class="result-box">
+                    <h3 id="currentTotal">0</h3>
+                    <p>درجة</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Target Score -->
+        <div class="card" id="targetScoreCard" style="display: none;">
+            <div class="card-header">
+                <h4><i class="bi bi-3-circle-fill"></i> الدرجة المطلوبة</h4>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label for="targetScore" class="form-label">ما هي الدرجة النهائية المطلوبة للامتحان؟</label>
+                        <input type="number" class="form-control" id="targetScore" min="1" placeholder="مثال: 100">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-info w-100" onclick="calculateNewScores()">
+                            <i class="bi bi-graph-up-arrow"></i> احسب التوزيع الجديد
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Results -->
+        <div id="resultsCard" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-check-circle-fill"></i> النتائج</h4>
+                </div>
+                <div class="card-body">
+                    <div id="resultsContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let paragraphsData = [];
+
+        function generateParagraphs() {
+            const numParagraphs = parseInt(document.getElementById('numParagraphs').value);
+
+            if (!numParagraphs || numParagraphs < 1) {
+                alert('الرجاء إدخال عدد صحيح من الفقرات');
+                return;
+            }
+
+            paragraphsData = [];
+            const container = document.getElementById('paragraphsContainer');
+            container.innerHTML = '';
+
+            for (let i = 0; i < numParagraphs; i++) {
+                const paragraphDiv = document.createElement('div');
+                paragraphDiv.className = 'paragraph-item';
+                paragraphDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-bookmark-fill"></i> الفقرة ${i + 1}</h5>
+                        <button class="btn btn-success btn-sm" onclick="addQuestionGroup(${i})">
+                            <i class="bi bi-plus-circle"></i> إضافة مجموعة أسئلة
+                        </button>
+                    </div>
+                    <div id="paragraph-${i}-questions"></div>
+                `;
+                container.appendChild(paragraphDiv);
+
+                paragraphsData.push({
+                    questions: []
+                });
+            }
+
+            document.getElementById('paragraphsCard').style.display = 'block';
+            document.getElementById('paragraphsCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function addQuestionGroup(paragraphIndex) {
+            const questionsContainer = document.getElementById(`paragraph-${paragraphIndex}-questions`);
+            const groupIndex = paragraphsData[paragraphIndex].questions.length;
+
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'question-group';
+            groupDiv.id = `paragraph-${paragraphIndex}-group-${groupIndex}`;
+            groupDiv.innerHTML = `
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label">عدد الأسئلة</label>
+                        <input type="number" class="form-control" id="p${paragraphIndex}-g${groupIndex}-count" min="1" placeholder="مثال: 20">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">درجة السؤال الواحد</label>
+                        <input type="number" class="form-control" id="p${paragraphIndex}-g${groupIndex}-score" min="0.1" step="0.1" placeholder="مثال: 1">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-danger w-100" onclick="removeQuestionGroup(${paragraphIndex}, ${groupIndex})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            questionsContainer.appendChild(groupDiv);
+
+            paragraphsData[paragraphIndex].questions.push({
+                count: 0,
+                score: 0
+            });
+        }
+
+        function removeQuestionGroup(paragraphIndex, groupIndex) {
+            const groupDiv = document.getElementById(`paragraph-${paragraphIndex}-group-${groupIndex}`);
+            groupDiv.remove();
+            paragraphsData[paragraphIndex].questions[groupIndex] = null;
+        }
+
+        function calculateCurrentTotal() {
+            let total = 0;
+            let hasError = false;
+
+            paragraphsData.forEach((paragraph, pIndex) => {
+                paragraph.questions.forEach((question, qIndex) => {
+                    if (question === null) return;
+
+                    const countInput = document.getElementById(`p${pIndex}-g${qIndex}-count`);
+                    const scoreInput = document.getElementById(`p${pIndex}-g${qIndex}-score`);
+
+                    if (!countInput || !scoreInput) return;
+
+                    const count = parseFloat(countInput.value) || 0;
+                    const score = parseFloat(scoreInput.value) || 0;
+
+                    if (count <= 0 || score <= 0) {
+                        hasError = true;
+                        return;
+                    }
+
+                    question.count = count;
+                    question.score = score;
+                    total += count * score;
+                });
+            });
+
+            if (hasError) {
+                alert('الرجاء التأكد من إدخال جميع البيانات بشكل صحيح');
+                return;
+            }
+
+            if (total === 0) {
+                alert('الرجاء إضافة مجموعات أسئلة على الأقل');
+                return;
+            }
+
+            document.getElementById('currentTotal').textContent = total;
+            document.getElementById('currentTotalCard').style.display = 'block';
+            document.getElementById('targetScoreCard').style.display = 'block';
+            document.getElementById('targetScoreCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function calculateNewScores() {
+            const targetScore = parseFloat(document.getElementById('targetScore').value);
+            const currentTotal = parseFloat(document.getElementById('currentTotal').textContent);
+
+            if (!targetScore || targetScore <= 0) {
+                alert('الرجاء إدخال الدرجة المطلوبة');
+                return;
+            }
+
+            const ratio = targetScore / currentTotal;
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '';
+
+            // Summary
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'alert alert-success alert-custom mb-4';
+            summaryDiv.innerHTML = `
+                <h5 class="alert-heading"><i class="bi bi-graph-up"></i> ملخص التحويل</h5>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h6>الدرجة الحالية</h6>
+                        <h3 class="text-primary">${currentTotal}</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>الدرجة المطلوبة</h6>
+                        <h3 class="text-success">${targetScore}</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>معامل التحويل</h6>
+                        <h3 class="text-info">${ratio}</h3>
+                    </div>
+                </div>
+            `;
+            resultsContainer.appendChild(summaryDiv);
+
+            // Detailed Results
+            paragraphsData.forEach((paragraph, pIndex) => {
+                const paragraphDiv = document.createElement('div');
+                paragraphDiv.className = 'paragraph-item';
+
+                let paragraphHTML = `
+                    <h5 class="mb-3"><i class="bi bi-bookmark-fill"></i> الفقرة ${pIndex + 1}</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>عدد الأسئلة</th>
+                                    <th>الدرجة القديمة</th>
+                                    <th>الدرجة الجديدة</th>
+                                    <th>المجموع القديم</th>
+                                    <th>المجموع الجديد</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                paragraph.questions.forEach((question, qIndex) => {
+                    if (question === null || question.count === 0) return;
+
+                    const newScore = question.score * ratio;
+                    const oldTotal = question.count * question.score;
+                    const newTotal = question.count * newScore;
+
+                    paragraphHTML += `
+                        <tr>
+                            <td><span class="badge bg-primary">${question.count}</span></td>
+                            <td>${question.score}</td>
+                            <td><strong class="text-success">${newScore}</strong></td>
+                            <td>${oldTotal}</td>
+                            <td><strong class="text-success">${newTotal}</strong></td>
+                        </tr>
+                    `;
+                });
+
+                paragraphHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                paragraphDiv.innerHTML = paragraphHTML;
+                resultsContainer.appendChild(paragraphDiv);
+            });
+
+            document.getElementById('resultsCard').style.display = 'block';
+            document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>
