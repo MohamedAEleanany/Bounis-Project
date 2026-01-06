@@ -466,12 +466,62 @@
             resultsContainer.appendChild(summaryDiv);
 
             // Detailed Results
+            let grandTotalNew = 0; // المجموع الكلي الجديد لكل الفقرات
+            const paragraphsResults = []; // لحفظ نتائج كل فقرة
+
+            // المرحلة 1: حساب النتائج الأولية لكل فقرة
             paragraphsData.forEach((paragraph, pIndex) => {
+                // حساب إجمالي عدد الأسئلة والمجموع القديم للفقرة
+                let totalQuestions = 0;
+                let totalOldScore = 0;
+                const validQuestions = [];
+
+                paragraph.questions.forEach((question, qIndex) => {
+                    if (question === null || question.count === 0) return;
+                    totalQuestions += question.count;
+                    totalOldScore += question.count * question.score;
+                    validQuestions.push({ ...question, originalIndex: qIndex });
+                });
+
+                // حساب الدرجة الجديدة للفقرة بالكامل
+                const totalNewScore = totalOldScore * ratio;
+                const newScorePerQuestion = totalNewScore / totalQuestions;
+
+                paragraphsResults.push({
+                    pIndex,
+                    totalQuestions,
+                    totalOldScore,
+                    totalNewScore,
+                    newScorePerQuestion,
+                    validQuestions
+                });
+
+                grandTotalNew += totalNewScore;
+            });
+
+            // المرحلة 2: ضبط السؤال الأخير في آخر فقرة
+            if (paragraphsResults.length > 0) {
+                const difference = targetScore - grandTotalNew;
+                const lastParagraph = paragraphsResults[paragraphsResults.length - 1];
+                const lastQuestion = lastParagraph.validQuestions[lastParagraph.validQuestions.length - 1];
+
+                // تعديل الدرجة الجديدة للسؤال الأخير
+                lastQuestion.adjustedNewScore = lastParagraph.newScorePerQuestion + (difference / lastQuestion.count);
+            }
+
+            // المرحلة 3: عرض النتائج
+            paragraphsResults.forEach(({ pIndex, totalQuestions, totalOldScore, totalNewScore, newScorePerQuestion, validQuestions }) => {
                 const paragraphDiv = document.createElement('div');
                 paragraphDiv.className = 'paragraph-item';
 
                 let paragraphHTML = `
                     <h5 class="mb-3"><i class="bi bi-bookmark-fill"></i> الفقرة ${pIndex + 1}</h5>
+                    <div class="alert alert-info">
+                        <strong>إجمالي الأسئلة:</strong> ${totalQuestions} سؤال<br>
+                        <strong>المجموع القديم:</strong> ${totalOldScore.toFixed(2)}<br>
+                        <strong>المجموع الجديد:</strong> ${totalNewScore.toFixed(2)}<br>
+                        <strong>درجة السؤال الواحد:</strong> ${newScorePerQuestion.toFixed(2)}
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead class="table-primary">
@@ -486,20 +536,19 @@
                             <tbody>
                 `;
 
-                paragraph.questions.forEach((question, qIndex) => {
-                    if (question === null || question.count === 0) return;
-
-                    const newScore = question.score * ratio;
+                validQuestions.forEach((question, qIndex) => {
                     const oldTotal = question.count * question.score;
-                    const newTotal = question.count * newScore;
+                    const isLastQuestion = (pIndex === paragraphsResults.length - 1) && (qIndex === validQuestions.length - 1);
+                    const finalNewScore = isLastQuestion && question.adjustedNewScore ? question.adjustedNewScore : newScorePerQuestion;
+                    const newTotal = question.count * finalNewScore;
 
                     paragraphHTML += `
-                        <tr>
+                        <tr ${isLastQuestion ? 'class="table-warning"' : ''}>
                             <td><span class="badge bg-primary">${question.count}</span></td>
-                            <td>${question.score}</td>
-                            <td><strong class="text-success">${newScore}</strong></td>
-                            <td>${oldTotal}</td>
-                            <td><strong class="text-success">${newTotal}</strong></td>
+                            <td>${question.score.toFixed(2)}</td>
+                            <td><strong class="text-success">${finalNewScore.toFixed(2)}</strong></td>
+                            <td>${oldTotal.toFixed(2)}</td>
+                            <td><strong class="text-success">${newTotal.toFixed(2)}</strong></td>
                         </tr>
                     `;
                 });

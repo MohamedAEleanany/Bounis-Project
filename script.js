@@ -512,8 +512,16 @@ function createResultElement(result, index) {
             <div class="text-center mb-3 position-relative">
                 <h4 class="mb-0 course-title">${result.courseName}</h4>
                  <div class="no-print mt-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleMaxScoreEdit(${index})">📝 تعديل درجة الامتحان</button>
                     <button class="btn btn-sm btn-outline-secondary" onclick="toggleEdit(${index})">⚙️ تحديث الدرجات</button>
                     <button class="btn btn-sm btn-outline-danger me-1" onclick="removeSubject(${index})">🗑️ حذف</button>
+                </div>
+                <div id="maxscore-edit-box-${index}" class="no-print mt-2 d-none p-2 bg-light border rounded" style="max-width: 350px; margin: 0 auto;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">درجة الامتحان</span>
+                        <input type="number" id="maxscore-input-${index}" class="form-control" value="${result.maxScore}" min="1" max="200">
+                        <button class="btn btn-success" onclick="updateMaxScore(${index})">تحديث</button>
+                    </div>
                 </div>
                 <div id="edit-box-${index}" class="no-print mt-2 d-none p-2 bg-light border rounded" style="max-width: 300px; margin: 0 auto;">
                     <div class="input-group input-group-sm">
@@ -661,6 +669,39 @@ function updateCurve(index) {
     const oldSection = document.getElementById(`result-section-${index}`);
     const newSection = createResultElement(result, index);
     oldSection.replaceWith(newSection);
+}
+
+function toggleMaxScoreEdit(index) {
+    const box = document.getElementById(`maxscore-edit-box-${index}`);
+    box.classList.toggle('d-none');
+}
+
+function updateMaxScore(index) {
+    const input = document.getElementById(`maxscore-input-${index}`);
+    const newMaxScore = parseInt(input.value);
+
+    if (isNaN(newMaxScore) || newMaxScore < 1) {
+        alert('الرجاء إدخال درجة صحيحة');
+        return;
+    }
+
+    // تحديث البيانات
+    const result = allResults[index];
+    result.maxScore = newMaxScore;
+    result.passThreshold = newMaxScore * 0.5; // إعادة حساب درجة النجاح (50%)
+
+    // إعادة حساب curveData بناءً على الدرجة الجديدة
+    const maxCurve = result.curveData.length > 0 ? result.curveData[result.curveData.length - 1].added : 10;
+    result.curveData = calculateCurveData(result.scores, result.passThreshold, result.attendingStudents, maxCurve);
+    result.currentPassStats = result.curveData[0];
+
+    // إعادة رسم القسم
+    const oldSection = document.getElementById(`result-section-${index}`);
+    const newSection = createResultElement(result, index);
+    oldSection.replaceWith(newSection);
+
+    // حفظ التغييرات في localStorage
+    localStorage.setItem('examStatistics', JSON.stringify(allResults));
 }
 
 function removeSubject(index) {
