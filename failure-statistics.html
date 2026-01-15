@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نسب نجاح التخلفات</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .result-view {
+            padding: 2rem 0;
+        }
+
+        .result-section {
+            margin-bottom: 3rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            page-break-after: always;
+        }
+
+        .result-section:last-child {
+            page-break-after: auto;
+        }
+
+        .level-title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .stats-table {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .stats-table th,
+        .stats-table td {
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .stats-table th {
+            background-color: #f8f9fa;
+            font-weight: 700;
+        }
+
+        .chart-container {
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        /* Print Styles */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 0.5cm;
+            }
+
+            body {
+                background-color: white;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .result-section {
+                margin: 0;
+                padding: 1rem;
+                border: none;
+                page-break-inside: avoid;
+                page-break-after: always;
+                height: 100vh;
+                /* ملء الصفحة */
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                /* رفع المحتوى للأعلى بدلاً من التوسط */
+                padding-top: 1cm !important;
+                /* مسافة بسيطة من الأعلى */
+            }
+
+            .result-section:last-child {
+                page-break-after: auto;
+            }
+
+            h4 {
+                font-size: 1.6rem;
+                margin-bottom: 0.5rem;
+            }
+
+            h5 {
+                font-size: 1.2rem;
+            }
+
+            h6 {
+                font-size: 1rem;
+            }
+
+            /* تنسيق المربع */
+            .text-center.mb-4.p-2 {
+                margin-bottom: 2rem !important;
+                border-width: 2px !important;
+            }
+
+            /* تخطيط مرن للجدول والرسم البياني */
+            .row {
+                display: flex !important;
+                flex-direction: row !important;
+                /* ضمان الاتجاه الأفقي */
+                flex-wrap: nowrap !important;
+                /* منع الالتفاف للأسفل */
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 2rem;
+                margin-top: 1rem;
+            }
+
+            /* العمود الأول (الجدول) - يمين في RTL */
+            .col-md-6:first-child {
+                width: 45% !important;
+                flex: 0 0 45% !important;
+                order: 1;
+                /* ترتيب الظهور */
+            }
+
+            /* العمود الثاني (الرسم البياني) - يسار في RTL */
+            .col-md-6:last-child {
+                width: 45% !important;
+                flex: 0 0 45% !important;
+                order: 2;
+                /* ترتيب الظهور */
+            }
+
+            table {
+                font-size: 1.1rem;
+                width: 100% !important;
+            }
+
+            table th,
+            table td {
+                padding: 0.8rem !important;
+                border: 1px solid #dee2e6 !important;
+                /* حدود رمادية فاتحة مثل الشاشة */
+            }
+
+            table th {
+                background-color: #d3d3d3 !important;
+                color: #000 !important;
+                width: 60%;
+                /* زيادة عرض عمود العناوين في الطباعة */
+            }
+
+            .chart-container {
+                max-width: 300px !important;
+                /* تكبير قليلاً ليتناسب مع المساحة */
+                margin: 0 auto;
+            }
+
+            canvas {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="results-view" class="result-view container">
+        <div class="text-center no-print mb-4 mt-3">
+            <button onclick="window.print()" class="btn btn-success me-2">
+                🖨️ طباعة
+            </button>
+            <button onclick="goBack()" class="btn btn-secondary">
+                ← العودة للنتائج
+            </button>
+        </div>
+
+        <!-- فلتر الفرقة -->
+        <div class="no-print mb-4">
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    <label for="level-filter" class="form-label fw-bold">تصفية حسب الفرقة:</label>
+                    <select id="level-filter" class="form-select" onchange="filterByLevel()">
+                        <option value="all">الجميع</option>
+                        <option value="22">الفرقة الثانية</option>
+                        <option value="23">الفرقة الثالثة</option>
+                        <option value="24">الفرقة الرابعة</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-container">
+            <!-- سيتم ملء المحتوى هنا بواسطة JavaScript -->
+        </div>
+
+        <div class="text-center no-print mt-4 pb-5">
+        </div>
+    </div>
+
+    <script>
+        // متغير عام لحفظ جميع النتائج
+        let allResults = [];
+
+        // استرجاع البيانات من localStorage
+        function loadFailureStatistics() {
+            const statsData = localStorage.getItem('failureStatistics');
+
+            if (!statsData) {
+                showEmptyState();
+                return;
+            }
+
+            try {
+                allResults = JSON.parse(statsData);
+                renderResults(allResults);
+            } catch (error) {
+                console.error('Error parsing statistics data:', error);
+                showEmptyState();
+            }
+        }
+
+        // فلترة النتائج حسب الفرقة
+        function filterByLevel() {
+            const selectedLevel = document.getElementById('level-filter').value;
+
+            if (selectedLevel === 'all') {
+                renderResults(allResults);
+            } else {
+                const filtered = allResults.filter(result => result.level === selectedLevel);
+                renderResults(filtered);
+            }
+        }
+
+        function renderResults(results) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = '';
+
+            if (!results || results.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            results.forEach((result, index) => {
+                container.appendChild(createResultElement(result, index));
+            });
+        }
+
+        function createResultElement(result, index) {
+            const section = document.createElement('div');
+            section.className = 'result-section';
+            section.id = `result-section-${index}`;
+
+            const levelNames = {
+                '22': 'الفرقة الثانية',
+                '23': 'الفرقة الثالثة',
+                '24': 'الفرقة الرابعة'
+            };
+
+            const levelName = levelNames[result.level] || `الفرقة ${result.level}`;
+            // حساب النسبة من الحاضرين وليس من إجمالي الطلاب
+            const successPercentage = result.attendingStudents > 0 ? ((result.passedStudents / result.attendingStudents) * 100).toFixed(2) : 0;
+            const failurePercentage = result.attendingStudents > 0 ? ((result.failedStudents / result.attendingStudents) * 100).toFixed(2) : 0;
+
+            // استخدام اسم المادة والسنة الدراسية المحفوظة مع البيانات
+            const courseName = result.courseName || 'غير محدد';
+            const academicYear = result.academicYear || '';
+
+            // تنظيف اسم المادة من بادئة "تخلف" لاستخدامه في البناء
+            let cleanCourseName = courseName.replace(/^(تخلف\s*-\s*|تخلف\s+)/, '').trim();
+
+            // استخراج اسم المادة فقط (بدون الفصل والسنة)
+            let shortCourseName = cleanCourseName
+                .split(/\s+-\s+|(?<=\p{L})\s+(?=\d{4})/u)[0]
+                .trim();
+
+            // بناء العنوان الكامل في سطر واحد
+            let fullTitle = academicYear
+                ? `تخلف - ${shortCourseName} - الفصل الدراسى الأول - نظم معلومات الأعمال ${academicYear}`
+                : `تخلف - ${shortCourseName} - الفصل الدراسى الأول - نظم معلومات الأعمال`;
+
+            const html = `
+                <!-- اسم المادة والفصل الدراسي -->
+                <div class="text-center mb-3">
+                    <h4 class="mb-1" style="font-weight: 700;">${fullTitle}</h4>
+                </div>
+
+                <!-- مربع نسب النجاح -->
+                <div class="text-center mb-3 p-2" style="border: 2px solid #000; border-radius: 5px; width: fit-content; margin: 0 auto; min-width: 300px;">
+                    <h5 class="mb-0" style="font-weight: 600;">نسبة التخلفات لطلاب ${levelName} لمقرر ${shortCourseName}</h5>
+                </div>
+
+                <!-- درجة الامتحان -->
+                <div class="text-center mb-4">
+                    <h5 style="font-weight: 600;">درجة الامتحان: <span class="text-primary">100</span></h5>
+                </div>
+
+                <!-- الجدول والرسم البياني جنب بعض -->
+                <div class="row align-items-center justify-content-center">
+                    <!-- الجدول العمودي -->
+                    <div class="col-md-6 d-flex justify-content-center">
+                        <table class="table table-bordered shadow-sm" style="max-width: 400px; font-size: 0.95rem;">
+                            <tbody>
+                                <tr>
+                                    <th class="text-center align-middle" style="background-color: #f8f9fa; color: #333; width: 60%;">إجمالي الطلاب</th>
+                                    <td class="text-center align-middle fw-bold fs-5 text-primary">${result.totalStudents}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center align-middle" style="background-color: #f8f9fa; color: #333;">عدد الحضور</th>
+                                    <td class="text-center align-middle fw-bold fs-5 text-primary">${result.attendingStudents}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center align-middle" style="background-color: #f8f9fa; color: #333;">عدد الغياب</th>
+                                    <td class="text-center align-middle fw-bold fs-5 text-primary">${result.absentStudents}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center align-middle" style="background-color: #f8f9fa; color: #333;">عدد الناجحين</th>
+                                    <td class="text-center align-middle fw-bold fs-5 text-primary">${result.passedStudents}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center align-middle" style="background-color: #f8f9fa; color: #333;">عدد الراسبين</th>
+                                    <td class="text-center align-middle fw-bold fs-5 text-danger">${result.failedStudents}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center align-middle" style="background-color: #f8f9fa; color: #333;">نسبة النجاح</th>
+                                    <td class="text-center align-middle fw-bold fs-5 text-success" dir="ltr">%${successPercentage}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- الرسم البياني -->
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <canvas id="chart-${index}"></canvas>
+                        </div>
+                        <!-- نسبة النجاح أسفل الرسم البياني -->
+                        <div class="text-center mt-3">
+                            <h5 class="fw-bold text-success" dir="ltr">نسبة النجاح: %${successPercentage}</h5>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            section.innerHTML = html;
+
+            // إنشاء الرسم البياني بعد إضافة العنصر للصفحة
+            setTimeout(() => {
+                const ctx = document.getElementById(`chart-${index}`);
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'pie',
+                        plugins: [ChartDataLabels], // تفعيل الإضافة ضروري هنا
+                        data: {
+                            labels: ['ناجح', 'راسب'],
+                            datasets: [{
+                                data: [result.passedStudents, result.failedStudents],
+                                backgroundColor: ['#28a745', '#dc3545'],
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: {
+                                            family: 'Cairo',
+                                            size: 14
+                                        }
+                                    }
+                                },
+                                datalabels: {
+                                    display: false // إخفاء النسب من الرسم البياني
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 100);
+
+            return section;
+        }
+
+        function showEmptyState() {
+            const container = document.getElementById('results-container');
+            container.innerHTML = `
+                <div class="text-center p-5">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">📭</div>
+                    <h3>لا توجد بيانات لعرضها</h3>
+                    <p>يرجى تحليل الملفات أولاً من الصفحة الرئيسية</p>
+                    <button onclick="goToHome()" class="btn btn-primary mt-3">
+                        الذهاب للصفحة الرئيسية
+                    </button>
+                </div>
+            `;
+        }
+
+        function goBack() {
+            window.location.href = 'index.html?return=true';
+        }
+
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        // تحميل الإحصائيات عند فتح الصفحة
+        window.addEventListener('DOMContentLoaded', loadFailureStatistics);
+    </script>
+</body>
+
+</html>

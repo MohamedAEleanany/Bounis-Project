@@ -222,6 +222,25 @@
                 document.write('<style>#upload-view{display:none!important;}#results-view{display:block!important;}</style>');
             }
         })();
+
+        // استعادة حالة زر التخلفات عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            // التحقق مما إذا كانت النتائج المحفوظة لها درجة عظمى 100
+            try {
+                const storedResults = localStorage.getItem('examStatistics');
+                if (storedResults) {
+                    const results = JSON.parse(storedResults);
+                    if (results && results.length > 0 && results[0].maxScore === 100) {
+                        const failureBtn = document.getElementById('failure-stats-btn');
+                        if (failureBtn) {
+                            failureBtn.style.display = 'inline-block';
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error checking stored results for max score:", e);
+            }
+        });
     </script>
 </head>
 
@@ -266,6 +285,27 @@
                             </select>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">اختر الكنترول (اختياري)</label>
+                            <select class="form-select" id="control-level">
+                                <option value="" selected>-- اختر الكنترول --</option>
+                                <option value="كنترول الفرقة الأولى">كنترول الفرقة الأولى</option>
+                                <option value="كنترول الفرقة الثانية">كنترول الفرقة الثانية</option>
+                                <option value="كنترول الفرقة الثالثة">كنترول الفرقة الثالثة</option>
+                                <option value="كنترول الفرقة الرابعة">كنترول الفرقة الرابعة</option>
+                                <option value="كنترول المستوى الأول">كنترول المستوى الأول</option>
+                                <option value="كنترول المستوى الثاني">كنترول المستوى الثاني</option>
+                                <option value="كنترول المستوى الثالث">كنترول المستوى الثالث</option>
+                                <option value="كنترول المستوى الرابع">كنترول المستوى الرابع</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">اسم رئيس كنترول الفرقة (اختياري)</label>
+                            <input type="text" class="form-control" id="control-head-name"
+                                placeholder="أدخل اسم رئيس الكنترول">
+                        </div>
+
                         <div class="mb-4">
                             <label class="form-label">عدد الدرجات المضافة</label>
                             <input type="number" id="max-curve" class="form-control" value="10" min="0" max="50">
@@ -296,6 +336,10 @@
             </button>
             <button onclick="viewStudentGrades()" class="btn btn-info me-2">
                 📝 درجات الطلاب
+            </button>
+            <button onclick="viewFailureStatistics()" class="btn btn-danger me-2" id="failure-stats-btn"
+                style="display: none;">
+                📉 نسب نجاح التخلفات
             </button>
             <button onclick="toggleViewMode()" class="btn btn-warning me-2 text-white">
                 📄 عرض مدمج

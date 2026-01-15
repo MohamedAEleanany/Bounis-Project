@@ -30,12 +30,16 @@ document.getElementById('analysis-form').addEventListener('submit', async functi
     const maxScoreInput = document.getElementById('max-score');
     const academicYearInput = document.getElementById('academic-year');
     const maxCurveInput = document.getElementById('max-curve');
+    const controlLevelInput = document.getElementById('control-level');
+    const controlHeadNameInput = document.getElementById('control-head-name');
     const submitBtn = document.getElementById('submit-btn');
 
     const files = Array.from(fileInput.files);
     const maxScore = parseFloat(maxScoreInput.value);
     const academicYear = academicYearInput.value;
     const maxCurve = parseInt(maxCurveInput.value) || 10;
+    const controlLevel = controlLevelInput.value || ''; // اختياري
+    const controlHeadName = controlHeadNameInput.value.trim() || ''; // اختياري
 
     if (files.length === 0 || isNaN(maxScore)) {
         alert('يرجى اختيار الملفات والدرجة');
@@ -49,6 +53,9 @@ document.getElementById('analysis-form').addEventListener('submit', async functi
         const results = [];
         for (const file of files) {
             const result = await processFile(file, maxScore, academicYear, maxCurve);
+            // إضافة بيانات الكنترول
+            result.controlLevel = controlLevel;
+            result.controlHeadName = controlHeadName;
             results.push(result);
         }
 
@@ -57,6 +64,23 @@ document.getElementById('analysis-form').addEventListener('submit', async functi
         allResults = results;
         // حفظ النتائج في localStorage
         localStorage.setItem('examStatistics', JSON.stringify(allResults));
+
+        // معالجة بيانات التخلفات إذا كانت الدرجة 100
+        if (maxScore === 100) {
+            // قراءة السنة الدراسية من القائمة المنسدلة
+            const academicYearSelect = document.getElementById('academic-year');
+            const selectedAcademicYear = academicYearSelect ? academicYearSelect.value : '2025-2026';
+
+            processFailureStatistics(files, selectedAcademicYear);
+            // إظهار زر نسب نجاح التخلفات
+            const failureBtn = document.getElementById('failure-stats-btn');
+            if (failureBtn) failureBtn.style.display = 'inline-block';
+        } else {
+            // إخفاء الزر إذا لم تكن الدرجة 100
+            const failureBtn = document.getElementById('failure-stats-btn');
+            if (failureBtn) failureBtn.style.display = 'none';
+        }
+
         renderResults(allResults);
 
 
@@ -741,9 +765,112 @@ function viewBonusAppliedStatistics() {
 function resetAndAnalyzeNew() {
     // مسح البيانات المحفوظة
     localStorage.removeItem('examStatistics');
+    localStorage.removeItem('failureStatistics');
     allResults = [];
 
     // إعادة تحميل الصفحة بالكامل لضمان مسح كل شيء
     window.location.href = 'index.html';
+}
+
+async function processFailureStatistics(files, selectedAcademicYear = '2025-2026') {
+    try {
+        const allResults = []; // مصفوفة لحفظ نتائج كل فرقة في كل ملف
+
+        for (const file of files) {
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            if (worksheet['!ref']) {
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+                range.s.c = 0;
+                range.s.r = 0;
+                worksheet['!ref'] = XLSX.utils.encode_range(range);
+            }
+
+            let rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+
+            // قراءة اسم المادة من العمود F (index 5) في الصف الثاني
+            let courseName = 'غير محدد';
+
+            // محاولة العثور على اسم المادة في العمود F (الصف الثاني)
+            if (rows.length > 1 && rows[1] && rows[1][5]) {
+                courseName = String(rows[1][5]).trim();
+            }
+
+            // استخدام السنة الدراسية المُمررة من index.html
+            const academicYear = selectedAcademicYear;
+
+            // إحصائيات كل فرقة في هذا الملف
+            const fileLevelStats = {};
+
+            // قراءة العمود D (index 3) والعمود K (index 10)
+            for (let i = 1; i < rows.length; i++) {
+                if (!rows[i] || rows[i].length === 0) continue;
+
+                const studentId = String(rows[i][3] || '').trim(); // العمود D
+                const scoreStr = String(rows[i][10] || '').trim(); // العمود K
+
+                // تحقق من أن رقم الطالب يبدأ بـ 22 أو 23 أو 24
+                if (!studentId || studentId.length < 2) continue;
+
+                const levelPrefix = studentId.substring(0, 2);
+                if (!['22', '23', '24'].includes(levelPrefix)) continue;
+
+                // تهيئة البيانات للفرقة إذا لم تكن موجودة
+                if (!fileLevelStats[levelPrefix]) {
+                    fileLevelStats[levelPrefix] = {
+                        fileName: file.name,
+                        courseName: courseName,
+                        academicYear: academicYear,
+                        level: levelPrefix,
+                        totalStudents: 0,
+                        attendingStudents: 0,
+                        absentStudents: 0,
+                        passedStudents: 0,
+                        failedStudents: 0
+                    };
+                }
+
+                fileLevelStats[levelPrefix].totalStudents++;
+
+                // تحقق من أن الدرجة رقم صحيح
+                const score = parseFloat(scoreStr);
+                if (isNaN(score)) {
+                    // غائب
+                    fileLevelStats[levelPrefix].absentStudents++;
+                } else {
+                    // حاضر
+                    fileLevelStats[levelPrefix].attendingStudents++;
+
+                    // حساب النجاح (50% من 100 = 50)
+                    if (score >= 50) {
+                        fileLevelStats[levelPrefix].passedStudents++;
+                    } else {
+                        fileLevelStats[levelPrefix].failedStudents++;
+                    }
+                }
+            }
+
+            // إضافة نتائج كل فرقة في هذا الملف إلى المصفوفة النهائية
+            Object.values(fileLevelStats).forEach(stats => {
+                if (stats.totalStudents > 0) {
+                    allResults.push(stats);
+                }
+            });
+        }
+
+        // حفظ البيانات في localStorage
+        localStorage.setItem('failureStatistics', JSON.stringify(allResults));
+
+    } catch (error) {
+        console.error('Error processing failure statistics:', error);
+    }
+}
+
+function viewFailureStatistics() {
+    // الانتقال لصفحة نسب نجاح التخلفات
+    window.location.href = 'failure-statistics.html';
 }
 
