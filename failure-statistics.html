@@ -284,8 +284,8 @@
 
             const levelName = levelNames[result.level] || `الفرقة ${result.level}`;
             // حساب النسبة من الحاضرين وليس من إجمالي الطلاب
-            const successPercentage = result.attendingStudents > 0 ? ((result.passedStudents / result.attendingStudents) * 100).toFixed(2) : 0;
-            const failurePercentage = result.attendingStudents > 0 ? ((result.failedStudents / result.attendingStudents) * 100).toFixed(2) : 0;
+            const successPercentage = result.attendingStudents > 0 ? ((result.passedStudents / result.attendingStudents) * 100).toFixed(3) : 0;
+            const failurePercentage = result.attendingStudents > 0 ? ((result.failedStudents / result.attendingStudents) * 100).toFixed(3) : 0;
 
             // استخدام اسم المادة والسنة الدراسية المحفوظة مع البيانات
             const courseName = result.courseName || 'غير محدد';
