@@ -829,28 +829,47 @@ async function processFailureStatistics(files, selectedAcademicYear = '2025-2026
                         attendingStudents: 0,
                         absentStudents: 0,
                         passedStudents: 0,
-                        failedStudents: 0
+                        failedStudents: 0,
+                        students: [] // قائمة الطلاب
                     };
                 }
 
-                fileLevelStats[levelPrefix].totalStudents++;
+                const stats = fileLevelStats[levelPrefix];
+                stats.totalStudents++;
+
+                // قراءة اسم الطالب من العمود B (index 1)
+                const studentName = String(rows[i][1] || '').trim();
+
+                const studentData = {
+                    seatNo: studentId,
+                    name: studentName,
+                    score: 0,
+                    status: ''
+                };
 
                 // تحقق من أن الدرجة رقم صحيح
                 const score = parseFloat(scoreStr);
                 if (isNaN(score)) {
                     // غائب
-                    fileLevelStats[levelPrefix].absentStudents++;
+                    stats.absentStudents++;
+                    studentData.status = 'absent';
+                    studentData.score = '-';
                 } else {
                     // حاضر
-                    fileLevelStats[levelPrefix].attendingStudents++;
+                    stats.attendingStudents++;
+                    studentData.score = score;
 
                     // حساب النجاح (50% من 100 = 50)
                     if (score >= 50) {
-                        fileLevelStats[levelPrefix].passedStudents++;
+                        stats.passedStudents++;
+                        studentData.status = 'passed';
                     } else {
-                        fileLevelStats[levelPrefix].failedStudents++;
+                        stats.failedStudents++;
+                        studentData.status = 'failed';
                     }
                 }
+
+                stats.students.push(studentData);
             }
 
             // إضافة نتائج كل فرقة في هذا الملف إلى المصفوفة النهائية
