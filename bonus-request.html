@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج طلب بونص</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .input-view {
+            transition: all 0.3s ease;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 3rem;
+            border-radius: 10px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* A4 Paper Style */
+        .page-container {
+            display: none;
+            /* Hidden by default */
+            width: 210mm;
+            height: 297mm;
+            padding: 10mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            border: 1px solid #d3d3d3;
+            position: relative;
+            box-sizing: border-box;
+            color: black;
+            font-family: 'Simplified Arabic', 'Traditional Arabic', serif;
+        }
+
+        .border-frame {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #000080;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+
+        .border-inner-thick {
+            width: 100%;
+            height: 100%;
+            border: 4px solid #000080;
+            position: relative;
+            box-sizing: border-box;
+            padding: 30px 40px;
+        }
+
+        .corner-box {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #000080;
+            background: white;
+            z-index: 10;
+        }
+
+        .p-tl {
+            top: -2px;
+            right: -2px;
+        }
+
+        .p-tr {
+            top: -2px;
+            left: -2px;
+        }
+
+        .p-bl {
+            bottom: -2px;
+            right: -2px;
+        }
+
+        .p-br {
+            bottom: -2px;
+            left: -2px;
+        }
+
+        .corner-box::after {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            background: #000080;
+            margin: 3px;
+        }
+
+        /* Header Style */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            width: 100%;
+        }
+
+        .header-right {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12pt;
+            /* Reduced from 14pt */
+            line-height: 1.2;
+        }
+
+        .header-logo {
+            text-align: left;
+        }
+
+        .header-logo img {
+            max-width: 80px;
+            /* Reduced from 100px */
+            height: auto;
+        }
+
+        /* Word Document Content Styles */
+        .word-content {
+            font-family: 'Simplified Arabic', 'Traditional Arabic', serif !important;
+            font-size: 16pt;
+            font-weight: bold !important;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .word-header {
+            font-family: 'Simplified Arabic', 'Traditional Arabic', serif !important;
+            font-weight: bold;
+            font-size: 22pt;
+        }
+
+        .variable-text {
+            font-weight: bold;
+            padding: 0 5px;
+        }
+
+        /* Main Request Text Class */
+        .request-main-text {
+            font-family: 'Simplified Arabic', 'Traditional Arabic', serif !important;
+            font-size: 16pt;
+            font-weight: bold;
+            line-height: 1.8;
+            text-indent: 50px;
+            margin-bottom: 30px;
+        }
+
+        .signature-section {
+            margin-top: 60px;
+            display: flex;
+            justify-content: flex-end;
+            padding-left: 20px;
+            font-family: 'Simplified Arabic', 'Traditional Arabic', serif !important;
+        }
+
+        .signature-block {
+            text-align: center;
+            font-size: 18pt;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .top-spacer {
+            height: 20px;
+        }
+
+        .preview-toolbar {
+            width: 210mm;
+            margin: 0 auto 20px auto;
+            display: none;
+            justify-content: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: #f0f2f5;
+            padding: 10px 0;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+                width: 210mm;
+                height: 297mm;
+            }
+
+            .no-print,
+            .input-view,
+            .preview-toolbar {
+                display: none !important;
+            }
+
+            .page-container {
+                display: block !important;
+                border: none;
+                margin: 0 !important;
+                padding: 10mm !important;
+                /* Increased from 15mm to create smaller border/more whitespace */
+                width: 210mm !important;
+                height: 297mm !important;
+                box-sizing: border-box !important;
+                overflow: hidden;
+            }
+
+            .border-frame {
+                width: 100% !important;
+                height: 100% !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                border-color: #000080 !important;
+            }
+
+            .border-inner-thick {
+                border-color: #000080 !important;
+            }
+
+            .corner-box {
+                border-color: #000080 !important;
+                background-color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .corner-box::after {
+                background-color: #000080 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Input Form Section -->
+    <div class="container input-view">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-container">
+                    <h3 class="text-center mb-5 fw-bold text-primary">إنشاء نموذج طلب بونص</h3>
+                    <form id="bonusForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">1. عدد درجات البونص</label>
+                            <input type="text" class="form-control" id="bonusDegrees" required
+                                placeholder="أدخل عدد الدرجات">
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">2. الفرقة / المستوى</label>
+                                <select class="form-select" id="level" required>
+                                    <option value="" selected disabled>اختر الفرقة / المستوى</option>
+                                    <option value="الفرقة الأولى">الفرقة الأولى</option>
+                                    <option value="الفرقة الثانية">الفرقة الثانية</option>
+                                    <option value="الفرقة الثالثة">الفرقة الثالثة</option>
+                                    <option value="الفرقة الرابعة">الفرقة الرابعة</option>
+                                    <option value="المستوى الأول">المستوى الأول</option>
+                                    <option value="المستوى الثاني">المستوى الثاني</option>
+                                    <option value="المستوى الثالث">المستوى الثالث</option>
+                                    <option value="المستوى الرابع">المستوى الرابع</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">3. الشعبة</label>
+                                <select class="form-select" id="section" required>
+                                    <option value="" selected disabled>اختر الشعبة</option>
+                                    <option value="علوم حاسب (س.م)">علوم حاسب (س.م)</option>
+                                    <option value="علوم الحاسب">علوم الحاسب</option>
+                                    <option value="نظم معلومات الأعمال">نظم معلومات الأعمال</option>
+                                    <option value="نظم المعلومات الإدارية">نظم المعلومات الإدارية</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">4. نوع الاختبار</label>
+                            <select class="form-select" id="examType" required>
+                                <option value="" selected disabled>اختر نوع الاختبار</option>
+                                <option value="منتصف الفصل الدراسي الاول">منتصف الفصل الدراسي الاول</option>
+                                <option value="نهاية الفصل الدراسي الاول">نهاية الفصل الدراسي الاول</option>
+                                <option value="منتصف الفصل الدراسي الثاني">منتصف الفصل الدراسي الثاني</option>
+                                <option value="نهاية الفصل الدراسي الثاني">نهاية الفصل الدراسي الثاني</option>
+                                <option value="تخلفات الفصل الدراسي الاول">تخلفات الفصل الدراسي الاول</option>
+                                <option value="تخلفات الفصل الدراسي الثاني">تخلفات الفصل الدراسي الثاني</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">5. اسم المقرر</label>
+                            <input type="text" class="form-control" id="courseName" required
+                                placeholder="أدخل اسم المقرر">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">6. العام الأكاديمي</label>
+                            <select class="form-select" id="academicYear" required>
+                                <option value="2025-2026">2025-2026</option>
+                                <option value="2026-2027">2026-2027</option>
+                                <option value="2027-2028">2027-2028</option>
+                                <option value="2028-2029">2028-2029</option>
+                                <option value="2029-2030">2029-2030</option>
+                                <option value="2030-2031">2030-2031</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">7.أ اسم دكتور المقرر</label>
+                            <input type="text" class="form-control" id="profName" required
+                                placeholder="اسم استاذ المقرر">
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="form-label fw-bold">7.ب اسم استاذ ثاني للمقرر (اختياري)</label>
+                            <input type="text" class="form-control" id="profName2"
+                                placeholder="اختياري - يظهر تحت الاسم الأول">
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="index.html" class="btn btn-secondary px-4">
+                                عودة للرئيسية
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                معاينة النموذج
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Toolbar (Visible only in View Mode) -->
+    <div class="d-flex preview-toolbar no-print" id="actionButtons">
+        <button class="btn btn-secondary shadow" id="backBtn">
+            ✏️ تعديل البيانات
+        </button>
+        <button class="btn btn-success shadow" id="downloadWordBtn">
+            💾 تحميل Word
+        </button>
+        <button class="btn btn-primary shadow" id="printBtn">
+            🖨️ طباعة
+        </button>
+    </div>
+
+    <!-- Word Preview Section -->
+    <div id="wordPreview" class="page-container">
+        <!-- New Border Frame -->
+        <div class="border-frame">
+            <!-- Corners -->
+            <div class="corner-box p-tl"></div>
+            <div class="corner-box p-tr"></div>
+            <div class="corner-box p-bl"></div>
+            <div class="corner-box p-br"></div>
+
+            <div class="border-inner-thick">
+                <div class="word-content">
+                    <div class="top-spacer"></div>
+
+                    <!-- NEW HEADER SECTION -->
+                    <div class="header-section">
+                        <div class="header-right">
+                            <div>وزارة التعليم العالي</div>
+                            <div>معهد مصر العالي للتجارة و الحاسبات</div>
+                            <div>بالمنصورة</div>
+                            <div style="font-weight: bold;">
+                                شعبة <span id="headerSection"></span>
+                            </div>
+                        </div>
+                        <div class="header-logo">
+                            <img src="logo2.jpg" alt="Logo" width="80">
+                        </div>
+                    </div>
+
+                    <div class="word-header" style="margin-bottom: 0px; font-size: 18pt;">
+                        السيد الاستاذ الدكتور / مصطفى محمد صالح
+                    </div>
+                    <div class="word-header" style="margin-bottom: 20px; font-size: 18pt; margin-right: 350px;">
+                        وكيل المعهد
+                    </div>
+                </div>
+
+                <div class="word-header" style="text-align: center; margin-bottom: 30px;">
+                    تحيه طيبه و بعد ،،،
+                </div>
+
+                <div class="request-main-text">
+                    برجاء التكرم من سيادتكم بإضافة
+                    <span class="variable-text" id="pBonus"></span>
+                    درجات بونص لجميع طلاب
+                    <span class="variable-text" id="pLevel"></span>
+                    شعبة
+                    <span class="variable-text" id="pSection"></span>
+                    في اختبارات
+                    <span class="variable-text" id="pExam"></span>
+                    لمقرر
+                    <span class="variable-text" id="pCourse"></span>
+                    في العام الاكاديمي
+                    <span class="variable-text" id="pYear"></span>.
+                </div>
+
+                <div class="signature-section">
+                    <div class="signature-block">
+                        مقدمه لسيادتكم<br>
+                        <div style="margin-top: 10px;" id="pProf"></div>
+                        <div style="margin-top: 10px;" id="pProf2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('bonusForm');
+        const wordPreview = document.getElementById('wordPreview');
+        const inputView = document.querySelector('.input-view');
+        const actionButtons = document.getElementById('actionButtons');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Fill Data
+            const sectionVal = document.getElementById('section').value;
+            document.getElementById('pBonus').innerText = document.getElementById('bonusDegrees').value;
+            document.getElementById('pLevel').innerText = document.getElementById('level').value;
+            document.getElementById('pSection').innerText = sectionVal;
+            document.getElementById('headerSection').innerText = sectionVal;
+
+            const examSelect = document.getElementById('examType');
+            document.getElementById('pExam').innerText = examSelect.options[examSelect.selectedIndex].text;
+            document.getElementById('pCourse').innerText = document.getElementById('courseName').value;
+            document.getElementById('pYear').innerText = document.getElementById('academicYear').value;
+            document.getElementById('pProf').innerText = document.getElementById('profName').value;
+
+            // Handle Optional Second Professor
+            const prof2 = document.getElementById('profName2').value;
+            if (prof2) {
+                document.getElementById('pProf2').innerText = prof2;
+                document.getElementById('pProf2').style.display = 'block';
+            } else {
+                document.getElementById('pProf2').innerText = '';
+                document.getElementById('pProf2').style.display = 'none';
+            }
+
+            // Switch View
+            inputView.style.display = 'none';
+            wordPreview.style.display = 'block';
+            actionButtons.style.display = 'flex';
+        });
+
+        document.getElementById('printBtn').addEventListener('click', function () {
+            window.print();
+        });
+
+        document.getElementById('backBtn').addEventListener('click', function () {
+            inputView.style.display = 'block';
+            wordPreview.style.setProperty('display', 'none');
+            actionButtons.style.display = 'none';
+        });
+
+        document.getElementById('downloadWordBtn').addEventListener('click', function () {
+            const content = document.querySelector('.border-frame').outerHTML;
+            const courseName = document.getElementById('courseName').value || 'bonus-request';
+            const prof2Value = document.getElementById('profName2').value;
+            const prof2Html = prof2Value ? `<div style="margin-top: 10px;">${prof2Value}</div>` : '';
+
+            const preHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset='utf-8'>
+                <title>Bonus Request</title>
+                <style>
+                    body { 
+                        font-family: 'Simplified Arabic', 'Traditional Arabic', serif; 
+                        font-size: 16pt; 
+                        font-weight: bold;
+                        direction: rtl; 
+                        text-align: right;
+                        margin: 0.5cm; 
+                    }
+                    .border-frame {
+                        border: 2px solid #000080;
+                        padding: 4px;
+                        width: 100%;
+                        height: 950px;
+                        position: relative;
+                        box-sizing: border-box;
+                    }
+                    .border-inner-thick {
+                        border: 4px solid #000080;
+                        padding: 20px;
+                        height: 98%; 
+                    }
+                    .corner-box {
+                        width: 20px; height: 20px;
+                        border: 2px solid #000080;
+                        background: white;
+                        position: absolute;
+                    }
+                    .p-tl { top: -10px; right: -10px; }
+                    .p-tr { top: -10px; left: -10px; }
+                    .p-bl { bottom: -10px; right: -10px; }
+                    .p-br { bottom: -10px; left: -10px; }
+
+                    .top-spacer { height: 20px; }
+                    
+                    
+                    .word-header { 
+                        font-family: 'Simplified Arabic', 'Traditional Arabic', serif; 
+                        font-weight: bold; 
+                        font-size: 22pt; 
+                    }
+                    .request-main-text {
+                        font-family: 'Simplified Arabic', 'Traditional Arabic', serif;
+                        font-size: 16pt;
+                        font-weight: bold;
+                        line-height: 1.8;
+                        text-indent: 50px;
+                        margin-bottom: 30px;
+                    }
+                    .variable-text { font-weight: bold; }
+                    .signature-section { margin-top: 50px; text-align: left; }
+                    .signature-block { 
+                        font-family: 'Simplified Arabic', 'Traditional Arabic', serif; 
+                        font-size: 18pt; 
+                        font-weight: bold;
+                        text-align: center; 
+                        display: inline-block; 
+                        margin-right: 60%; 
+                    } 
+                </style>
+            </head><body>`;
+
+            // Header for Word
+            const headerTable = `
+            <table width="100%" dir="rtl" style="margin-bottom: 20px;">
+                <tr>
+                    <td align="right" style="font-size: 12pt; font-weight: bold; line-height: 1.2;"> <!-- Reduced -->
+                        <div style="text-align: center; display: inline-block;">
+                            <div>وزارة التعليم العالي</div>
+                            <div>معهد مصر العالي للتجارة و الحاسبات</div>
+                            <div>بالمنصورة</div>
+                            <div>شعبة <span id="headerSectionWord">${document.getElementById('section').value}</span></div>
+                        </div>
+                    </td>
+                    <td align="left">
+                        <img src="logo2.jpg" width="80" height="auto"> <!-- Reduced -->
+                    </td>
+                </tr>
+            </table>
+            `;
+
+            // Reconstruct content to ensure specific Word styling
+            const innerContent = `
+                <div class="border-inner-thick" style="border: 4px solid #000080; padding: 20px;">
+                    <div class="word-content">
+                        ${headerTable}
+                        <div class="word-header" style="margin-bottom: 0px; font-size: 18pt;">
+                            السيد الاستاذ الدكتور / مصطفى محمد صالح
+                        </div>
+                        <div class="word-header" style="margin-bottom: 20px; font-size: 18pt; margin-right: 350px;">
+                            وكيل المعهد
+                        </div>
+                        <div class="word-header" style="text-align: center; margin-bottom: 30px;">
+                            تحيه طيبه و بعد ،،،
+                        </div>
+                        <div class="request-main-text" style="font-family: 'Simplified Arabic', 'Traditional Arabic', serif; font-size: 16pt; font-weight: bold; text-indent: 50px; margin-bottom: 30px; line-height: 1.8;">
+                            برجاء التكرم من سيادتكم بإضافة 
+                            <span class="variable-text">${document.getElementById('pBonus').innerText}</span> 
+                            درجات بونص لجميع طلاب 
+                            <span class="variable-text">${document.getElementById('pLevel').innerText}</span> 
+                            شعبة 
+                            <span class="variable-text">${document.getElementById('pSection').innerText}</span> 
+                            في اختبارات 
+                            <span class="variable-text">${document.getElementById('pExam').innerText}</span> 
+                            لمقرر 
+                            <span class="variable-text">${document.getElementById('pCourse').innerText}</span> 
+                            في العام الاكاديمي 
+                            <span class="variable-text">${document.getElementById('pYear').innerText}</span>.
+                        </div>
+                        <div class="signature-section" style="text-align: left; margin-top: 50px;">
+                             <div class="signature-block" style="text-align: center; display: inline-block; margin-right: 60%;">
+                                مقدمه لسيادتكم<br>
+                                <div style="margin-top: 10px;">${document.getElementById('pProf').innerText}</div>
+                                ${prof2Html}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const fullBody = `
+            <div class="border-frame" style="border: 2px solid #000080; padding: 4px; width: 100%; height: 950px; position: relative;">
+                <div style="position:absolute; top:-10px; right:-10px; width:20px; height:20px; border:2px solid #000080; background:white;"></div>
+                <div style="position:absolute; top:-10px; left:-10px; width:20px; height:20px; border:2px solid #000080; background:white;"></div>
+                <div style="position:absolute; bottom:-10px; right:-10px; width:20px; height:20px; border:2px solid #000080; background:white;"></div>
+                <div style="position:absolute; bottom:-10px; left:-10px; width:20px; height:20px; border:2px solid #000080; background:white;"></div>
+                ${innerContent}
+            </div>
+            `;
+
+            const postHtml = "</body></html>";
+            const html = preHtml + fullBody + postHtml;
+
+            const blob = new Blob(['\ufeff', html], {
+                type: 'application/msword'
+            });
+
+            const url = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(html);
+
+            const downloadLink = document.createElement("a");
+            document.body.appendChild(downloadLink);
+
+            if (navigator.msSaveOrOpenBlob) {
+                navigator.msSaveOrOpenBlob(blob, courseName + '.doc');
+            } else {
+                downloadLink.href = url;
+                downloadLink.download = `طلـب بونـص - ${courseName}.doc`;
+                downloadLink.click();
+            }
+
+            document.body.removeChild(downloadLink);
+        });
+    </script>
+</body>
+
+</html>
