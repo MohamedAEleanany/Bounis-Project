@@ -131,13 +131,17 @@ function processFile(file, maxScore, academicYear, maxCurve = 10) {
                 }
                 // (تمت إزالة كود القص القديم - الآن نعتمد على الحلقة أدناه لتجاهل العنوان)
 
-                // قراءة درجة البونص من العمود J (index 9)، الصف الثاني (index 1)
+                // قراءة درجة البونص من العمود J (index 9)
+                // البحث عن أول رقم صحيح في العمود (تجاهل كلمة "غياب" أو القيم الفارغة)
                 let bonusGrade = 0;
-                if (rows[1] && rows[1][9] !== undefined) {
-                    const bonusValue = String(rows[1][9]).trim();
-                    if (bonusValue !== '' && !isNaN(parseFloat(bonusValue))) {
-                        bonusGrade = parseFloat(bonusValue);
-                        console.log('درجة البونص من الخلية J2:', bonusGrade);
+                for (let i = 1; i < Math.min(rows.length, 20); i++) { // البحث في أول 20 صف
+                    if (rows[i] && rows[i][9] !== undefined) {
+                        const bonusValue = String(rows[i][9]).trim();
+                        if (bonusValue !== '' && !isNaN(parseFloat(bonusValue))) {
+                            bonusGrade = parseFloat(bonusValue);
+                            console.log(`درجة البونص من الخلية J${i + 1}:`, bonusGrade);
+                            break; // وجدنا أول رقم صحيح، نتوقف
+                        }
                     }
                 }
 
@@ -801,6 +805,9 @@ async function processFailureStatistics(files, selectedAcademicYear = '2025-2026
 
             // استخدام السنة الدراسية المُمررة من index.html
             const academicYear = selectedAcademicYear;
+
+            // إضافة بادئة "تخلف - " والسنة الدراسية إلى اسم المادة
+            courseName = `تخلف - ${courseName} ${academicYear}`;
 
             // إحصائيات كل فرقة في هذا الملف
             const fileLevelStats = {};

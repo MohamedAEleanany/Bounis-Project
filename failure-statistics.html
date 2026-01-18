@@ -294,18 +294,18 @@
             const courseName = result.courseName || 'غير محدد';
             const academicYear = result.academicYear || '';
 
-            // تنظيف اسم المادة من بادئة "تخلف" لاستخدامه في البناء
-            let cleanCourseName = courseName.replace(/^(تخلف\s*-\s*|تخلف\s+)/, '').trim();
+            // بناء العنوان الكامل مباشرة من courseName (الذي يحتوي على كل المعلومات)
+            // courseName من script.js يأتي بالشكل: "تخلف - [اسم المادة] [السنة]"
+            let fullTitle = courseName;
 
-            // استخراج اسم المادة فقط (بدون الفصل والسنة)
-            let shortCourseName = cleanCourseName
-                .split(/\s+-\s+|(?<=\p{L})\s+(?=\d{4})/u)[0]
+            // استخراج اسم المادة القصير من courseName للاستخدام في المربع
+            // مثال: "تخلف - دراسات في الحاسب - الفصل الدراسى الأول - نظم معلومات الأعمال 2025-2026"
+            // نريد فقط: "دراسات في الحاسب"
+            let shortCourseName = courseName
+                .replace(/^تخلف\s*-\s*/, '') // إزالة "تخلف - "
+                .split(/\s*-\s*/)[0] // أخذ الجزء الأول قبل أول "-"
+                .replace(/\s+\d{4}-\d{4}$/, '') // إزالة السنة إذا كانت موجودة
                 .trim();
-
-            // بناء العنوان الكامل في سطر واحد
-            let fullTitle = academicYear
-                ? `تخلف - ${shortCourseName} - الفصل الدراسى الأول - نظم معلومات الأعمال ${academicYear}`
-                : `تخلف - ${shortCourseName} - الفصل الدراسى الأول - نظم معلومات الأعمال`;
 
             const html = `
                 <!-- اسم المادة والفصل الدراسي -->
