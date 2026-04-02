@@ -30,16 +30,15 @@ document.getElementById('analysis-form').addEventListener('submit', async functi
     const maxScoreInput = document.getElementById('max-score');
     const academicYearInput = document.getElementById('academic-year');
     const maxCurveInput = document.getElementById('max-curve');
-    const controlLevelInput = document.getElementById('control-level');
-    const controlHeadNameInput = document.getElementById('control-head-name');
+
     const submitBtn = document.getElementById('submit-btn');
 
     const files = Array.from(fileInput.files);
     const maxScore = parseFloat(maxScoreInput.value);
     const academicYear = academicYearInput.value;
     const maxCurve = parseInt(maxCurveInput.value) || 10;
-    const controlLevel = controlLevelInput.value || ''; // اختياري
-    const controlHeadName = controlHeadNameInput.value.trim() || ''; // اختياري
+    const controlLevel = ''; // تم إزالة هذا الحقل
+    const controlHeadName = ''; // تم إزالة هذا الحقل
 
     if (files.length === 0 || isNaN(maxScore)) {
         alert('يرجى اختيار الملفات والدرجة');
@@ -402,10 +401,18 @@ function createVerticalResultElement(result, index) {
 
     const html = `
             <div class="text-center mb-0 position-relative">
-                <h4 class="mb-0 course-title">${result.courseName}</h4>
+                <h4 class="mb-0 course-title" id="course-title-${index}">${result.courseName}</h4>
                  <div class="no-print mt-2">
+                    <button class="btn btn-sm btn-outline-info me-1" onclick="toggleTitleEdit(${index})">✏️ تعديل العنوان</button>
                     <button class="btn btn-sm btn-outline-secondary" onclick="toggleEdit(${index})">⚙️ تحديث الدرجات</button>
                     <button class="btn btn-sm btn-outline-danger me-1" onclick="removeSubject(${index})">🗑️ حذف</button>
+                </div>
+                <div id="title-edit-box-${index}" class="no-print mt-2 d-none p-2 bg-light border rounded" style="max-width: 450px; margin: 0 auto;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">العنوان</span>
+                        <input type="text" id="title-input-${index}" class="form-control" value="${result.courseName}">
+                        <button class="btn btn-success" onclick="updateTitle(${index})">حفظ</button>
+                    </div>
                 </div>
                 <div id="edit-box-${index}" class="no-print mt-2 d-none p-2 bg-light border rounded" style="max-width: 300px; margin: 0 auto;">
                     <div class="input-group input-group-sm">
@@ -538,11 +545,19 @@ function createResultElement(result, index) {
 
     const html = `
             <div class="text-center mb-3 position-relative">
-                <h4 class="mb-0 course-title">${result.courseName}</h4>
+                <h4 class="mb-0 course-title" id="course-title-${index}">${result.courseName}</h4>
                  <div class="no-print mt-2">
+                    <button class="btn btn-sm btn-outline-info me-1" onclick="toggleTitleEdit(${index})">✏️ تعديل العنوان</button>
                     <button class="btn btn-sm btn-outline-primary" onclick="toggleMaxScoreEdit(${index})">📝 تعديل درجة الامتحان</button>
                     <button class="btn btn-sm btn-outline-secondary" onclick="toggleEdit(${index})">⚙️ تحديث الدرجات</button>
                     <button class="btn btn-sm btn-outline-danger me-1" onclick="removeSubject(${index})">🗑️ حذف</button>
+                </div>
+                <div id="title-edit-box-${index}" class="no-print mt-2 d-none p-2 bg-light border rounded" style="max-width: 450px; margin: 0 auto;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">العنوان</span>
+                        <input type="text" id="title-input-${index}" class="form-control" value="${result.courseName}">
+                        <button class="btn btn-success" onclick="updateTitle(${index})">حفظ</button>
+                    </div>
                 </div>
                 <div id="maxscore-edit-box-${index}" class="no-print mt-2 d-none p-2 bg-light border rounded" style="max-width: 350px; margin: 0 auto;">
                     <div class="input-group input-group-sm">
@@ -673,6 +688,37 @@ function calculateCurveData(scores, passThreshold, attendingStudents, maxCurve) 
         }
     }
     return curveData;
+}
+
+function toggleTitleEdit(index) {
+    const box = document.getElementById(`title-edit-box-${index}`);
+    box.classList.toggle('d-none');
+}
+
+function updateTitle(index) {
+    const input = document.getElementById(`title-input-${index}`);
+    const newTitle = input.value.trim();
+
+    if (!newTitle) {
+        alert('يرجى إدخال عنوان صحيح');
+        return;
+    }
+
+    // Update the data
+    allResults[index].courseName = newTitle;
+
+    // Update the displayed h4 in place (no full re-render needed)
+    const titleEl = document.getElementById(`course-title-${index}`);
+    if (titleEl) titleEl.textContent = newTitle;
+
+    // Also update the input value in case user edits again
+    input.value = newTitle;
+
+    // Hide the edit box
+    document.getElementById(`title-edit-box-${index}`).classList.add('d-none');
+
+    // Persist to localStorage
+    localStorage.setItem('examStatistics', JSON.stringify(allResults));
 }
 
 function toggleEdit(index) {
