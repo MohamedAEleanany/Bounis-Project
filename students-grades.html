@@ -10,6 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Cairo Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Storage Helper -->
+    <script src="storage-helper.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -177,9 +179,9 @@
     </div>
 
     <script>
-        // استرجاع البيانات من localStorage
+        // استرجاع البيانات من safeStorage
         function loadStudentGrades() {
-            const statsData = localStorage.getItem('examStatistics');
+            const statsData = safeStorage.getItem('examStatistics');
 
             if (!statsData) {
                 showEmptyState();

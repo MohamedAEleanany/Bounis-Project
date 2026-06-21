@@ -214,12 +214,16 @@
             }
         }
     </style>
+    <!-- Storage Helper -->
+    <script src="storage-helper.js"></script>
     <script>
         // إخفاء نموذج الرفع فوراً إذا كان المستخدم عائداً من صفحة أخرى
         (function () {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('return')) {
-                document.write('<style>#upload-view{display:none!important;}#results-view{display:block!important;}</style>');
+                const style = document.createElement('style');
+                style.textContent = '#upload-view{display:none!important;}#results-view{display:block!important;}';
+                document.head.appendChild(style);
             }
         })();
 
@@ -227,7 +231,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             // التحقق مما إذا كانت النتائج المحفوظة لها درجة عظمى 100
             try {
-                const storedResults = localStorage.getItem('examStatistics');
+                const storedResults = safeStorage.getItem('examStatistics');
                 if (storedResults) {
                     const results = JSON.parse(storedResults);
                     if (results && results.length > 0 && results[0].maxScore === 100) {

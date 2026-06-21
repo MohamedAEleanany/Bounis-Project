@@ -7,7 +7,7 @@ window.addEventListener('DOMContentLoaded', function () {
     const returnFromPage = urlParams.get('return');
 
     if (returnFromPage) {
-        const savedResults = localStorage.getItem('examStatistics');
+        const savedResults = safeStorage.getItem('examStatistics');
         if (savedResults) {
             try {
                 allResults = JSON.parse(savedResults);
@@ -62,7 +62,7 @@ document.getElementById('analysis-form').addEventListener('submit', async functi
 
         allResults = results;
         // حفظ النتائج في localStorage
-        localStorage.setItem('examStatistics', JSON.stringify(allResults));
+        safeStorage.setItem('examStatistics', JSON.stringify(allResults));
 
         // معالجة بيانات التخلفات إذا كانت الدرجة 100
         if (maxScore === 100) {
@@ -724,7 +724,7 @@ function updateTitle(index) {
     document.getElementById(`title-edit-box-${index}`).classList.add('d-none');
 
     // Persist to localStorage
-    localStorage.setItem('examStatistics', JSON.stringify(allResults));
+    safeStorage.setItem('examStatistics', JSON.stringify(allResults));
 }
 
 function toggleEdit(index) {
@@ -781,7 +781,7 @@ function updateMaxScore(index) {
     oldSection.replaceWith(newSection);
 
     // حفظ التغييرات في localStorage
-    localStorage.setItem('examStatistics', JSON.stringify(allResults));
+    safeStorage.setItem('examStatistics', JSON.stringify(allResults));
 }
 
 function removeSubject(index) {
@@ -799,30 +799,30 @@ function removeSubject(index) {
 
 function viewStatistics() {
     // حفظ البيانات في localStorage
-    localStorage.setItem('examStatistics', JSON.stringify(allResults));
+    safeStorage.setItem('examStatistics', JSON.stringify(allResults));
     // الانتقال لصفحة الإحصائيات
     window.location.href = 'statistics.html';
 }
 
 function viewStudentGrades() {
     // حفظ البيانات في localStorage
-    localStorage.setItem('examStatistics', JSON.stringify(allResults));
+    safeStorage.setItem('examStatistics', JSON.stringify(allResults));
     // الانتقال لصفحة درجات الطلاب
     window.location.href = 'students-grades.html';
 }
 
 function viewBonusAppliedStatistics() {
     // حفظ البيانات في localStorage
-    localStorage.setItem('examStatistics', JSON.stringify(allResults));
+    safeStorage.setItem('examStatistics', JSON.stringify(allResults));
     // الانتقال لصفحة إحصائيات البونص المطبق
     window.location.href = 'bonus-applied-statistics.html';
 }
 
 function resetAndAnalyzeNew() {
     // مسح البيانات المحفوظة
-    localStorage.removeItem('examStatistics');
-    localStorage.removeItem('failureStatistics');
-    localStorage.removeItem('accountingFailureStatistics');
+    safeStorage.removeItem('examStatistics');
+    safeStorage.removeItem('failureStatistics');
+    safeStorage.removeItem('accountingFailureStatistics');
     allResults = [];
 
     // إعادة تحميل الصفحة بالكامل لضمان مسح كل شيء
@@ -941,7 +941,7 @@ async function processFailureStatistics(files, selectedAcademicYear = '2025-2026
         }
 
         // حفظ البيانات في localStorage
-        localStorage.setItem('failureStatistics', JSON.stringify(allResults));
+        safeStorage.setItem('failureStatistics', JSON.stringify(allResults));
 
     } catch (error) {
         console.error('Error processing failure statistics:', error);
@@ -1062,8 +1062,8 @@ async function processAccountingFailureStatistics(files, selectedAcademicYear = 
             });
         }
 
-        // حفظ البيانات في localStorage بمفتاح منفصل تماماً
-        localStorage.setItem('accountingFailureStatistics', JSON.stringify(allAccountingResults));
+        // حفظ البيانات في safeStorage بمفتاح منفصل تماماً
+        safeStorage.setItem('accountingFailureStatistics', JSON.stringify(allAccountingResults));
 
     } catch (error) {
         console.error('Error processing accounting failure statistics:', error);
