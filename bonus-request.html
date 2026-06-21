@@ -278,10 +278,11 @@
                                     <option value="المستوى الثالث">المستوى الثالث</option>
                                     <option value="المستوى الرابع">المستوى الرابع</option>
                                 </select>
+
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">3. الشعبة</label>
-                                <select class="form-select" id="section" required>
+                                <select class="form-select" id="section" required onchange="updateLevelOptions()">
                                     <option value="" selected disabled>اختر الشعبة</option>
                                     <option value="علوم حاسب (س.م)">علوم حاسب (س.م)</option>
                                     <option value="علوم الحاسب">علوم الحاسب</option>
@@ -290,6 +291,7 @@
                                     <option value="المحاسبة المعدلة">المحاسبة المعدلة</option>
                                     <option value="المحاسبة والمراجعة">المحاسبة والمراجعة</option>
                                 </select>
+
                             </div>
                         </div>
 
@@ -437,15 +439,97 @@
         const inputView = document.querySelector('.input-view');
         const actionButtons = document.getElementById('actionButtons');
 
+        // --- تحديث خيارات الفرقة بناءً على الشعبة المختارة ---
+        function updateLevelOptions() {
+            const section = document.getElementById('section').value;
+            const levelSelect = document.getElementById('level');
+
+            // الخيارات الافتراضية للفرق
+            const defaultOptions = [
+                { value: '', label: 'اختر الفرقة / المستوى', disabled: true, selected: true },
+                { value: 'الفرقة الأولى', label: 'الفرقة الأولى' },
+                { value: 'الفرقة الثانية', label: 'الفرقة الثانية' },
+                { value: 'الفرقة الثالثة', label: 'الفرقة الثالثة' },
+                { value: 'الفرقة الرابعة', label: 'الفرقة الرابعة' },
+                { value: 'المستوى الأول', label: 'المستوى الأول' },
+                { value: 'المستوى الثاني', label: 'المستوى الثاني' },
+                { value: 'المستوى الثالث', label: 'المستوى الثالث' },
+                { value: 'المستوى الرابع', label: 'المستوى الرابع' },
+            ];
+
+            // خيارات المحاسبة المعدلة
+            const moadalOptions = [
+                { value: '', label: 'اختر الفرقة / الشعبة', disabled: true, selected: true },
+                { value: 'الفرقة الثالثة شعبة محاسبة', label: 'الفرقة الثالثة شعبة محاسبة' },
+                { value: 'الفرقة الرابعة شعبة محاسبة', label: 'الفرقة الرابعة شعبة محاسبة' },
+                { value: 'الفرقة الرابعة شعبة إدارة الأعمال', label: 'الفرقة الرابعة شعبة إدارة الأعمال' },
+            ];
+
+            // خيارات المحاسبة والمراجعة
+            const murajaOptions = [
+                { value: '', label: 'اختر الفرقة / الشعبة', disabled: true, selected: true },
+                { value: 'الفرقة الأولى', label: 'الفرقة الأولى' },
+                { value: 'الفرقة الثانية', label: 'الفرقة الثانية' },
+                { value: 'الفرقة الثالثة شعبة محاسبة', label: 'الفرقة الثالثة شعبة محاسبة' },
+                { value: 'الفرقة الثالثة شعبة إدارة الأعمال', label: 'الفرقة الثالثة شعبة إدارة الأعمال' },
+                { value: 'الفرقة الرابعة شعبة محاسبة', label: 'الفرقة الرابعة شعبة محاسبة' },
+                { value: 'الفرقة الرابعة شعبة إدارة الأعمال', label: 'الفرقة الرابعة شعبة إدارة الأعمال' },
+            ];
+
+            let opts;
+            if (section === 'المحاسبة المعدلة') {
+                opts = moadalOptions;
+            } else if (section === 'المحاسبة والمراجعة') {
+                opts = murajaOptions;
+            } else {
+                opts = defaultOptions;
+            }
+
+            // إعادة بناء القائمة
+            levelSelect.innerHTML = '';
+            opts.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.value;
+                o.textContent = opt.label;
+                if (opt.disabled) o.disabled = true;
+                if (opt.selected) o.selected = true;
+                levelSelect.appendChild(o);
+            });
+        }
+
         form.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            // Fill Data
             const sectionVal = document.getElementById('section').value;
+            const levelVal = document.getElementById('level').value;
+
+            // تحديد ما إذا كان اختيار الفرقة يحتوي على شعبة مدمجة
+            const accountingSections = ['المحاسبة المعدلة', 'المحاسبة والمراجعة'];
+            const isCombined = accountingSections.includes(sectionVal);
+
+            // Fill Data
             document.getElementById('pBonus').innerText = document.getElementById('bonusDegrees').value;
-            document.getElementById('pLevel').innerText = document.getElementById('level').value;
-            document.getElementById('pSection').innerText = sectionVal;
-            document.getElementById('headerSection').innerText = sectionVal;
+
+            if (isCombined) {
+                // الفرقة تحتوي على الفرقة + الشعبة معاً (مثل "الفرقة الثالثة شعبة محاسبة")
+                // نفصل الجزء المشترك: كل شيء قبل كلمة "شعبة" هو الفرقة، وما بعدها هو الشعبة
+                const shaabaIdx = levelVal.indexOf('شعبة');
+                if (shaabaIdx !== -1) {
+                    const levelPart = levelVal.substring(0, shaabaIdx).trim();
+                    const sectionPart = levelVal.substring(shaabaIdx).trim(); // "شعبة ..."
+                    document.getElementById('pLevel').innerText = levelPart;
+                    document.getElementById('pSection').innerText = sectionPart.replace('شعبة ', '');
+                    document.getElementById('headerSection').innerText = sectionVal;
+                } else {
+                    document.getElementById('pLevel').innerText = levelVal;
+                    document.getElementById('pSection').innerText = sectionVal;
+                    document.getElementById('headerSection').innerText = sectionVal;
+                }
+            } else {
+                document.getElementById('pLevel').innerText = levelVal;
+                document.getElementById('pSection').innerText = sectionVal;
+                document.getElementById('headerSection').innerText = sectionVal;
+            }
 
             const examSelect = document.getElementById('examType');
             document.getElementById('pExam').innerText = examSelect.options[examSelect.selectedIndex].text;
@@ -468,6 +552,7 @@
             wordPreview.style.display = 'block';
             actionButtons.style.display = 'flex';
         });
+
 
         document.getElementById('printBtn').addEventListener('click', function () {
             window.print();

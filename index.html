@@ -235,6 +235,10 @@
                         if (failureBtn) {
                             failureBtn.style.display = 'inline-block';
                         }
+                        const accountingFailureBtn = document.getElementById('accounting-failure-stats-btn');
+                        if (accountingFailureBtn) {
+                            accountingFailureBtn.style.display = 'inline-block';
+                        }
                     }
                 }
             } catch (e) {
@@ -325,6 +329,10 @@
             <button onclick="viewFailureStatistics()" class="btn btn-danger me-2" id="failure-stats-btn"
                 style="display: none;">
                 📉 نسب نجاح التخلفات
+            </button>
+            <button onclick="viewAccountingFailureStatistics()" class="btn btn-warning me-2 text-dark fw-bold" id="accounting-failure-stats-btn"
+                style="display: none;">
+                📊 نسب نجاح تخلفات محاسبة
             </button>
             <button onclick="toggleViewMode()" class="btn btn-warning me-2 text-white">
                 📄 عرض مدمج

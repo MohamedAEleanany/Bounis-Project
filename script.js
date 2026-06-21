@@ -71,13 +71,19 @@ document.getElementById('analysis-form').addEventListener('submit', async functi
             const selectedAcademicYear = academicYearSelect ? academicYearSelect.value : '2025-2026';
 
             processFailureStatistics(files, selectedAcademicYear);
+            processAccountingFailureStatistics(files, selectedAcademicYear);
             // إظهار زر نسب نجاح التخلفات
             const failureBtn = document.getElementById('failure-stats-btn');
             if (failureBtn) failureBtn.style.display = 'inline-block';
+            // إظهار زر نسب نجاح تخلفات المحاسبة
+            const accountingFailureBtn = document.getElementById('accounting-failure-stats-btn');
+            if (accountingFailureBtn) accountingFailureBtn.style.display = 'inline-block';
         } else {
-            // إخفاء الزر إذا لم تكن الدرجة 100
+            // إخفاء الأزرار إذا لم تكن الدرجة 100
             const failureBtn = document.getElementById('failure-stats-btn');
             if (failureBtn) failureBtn.style.display = 'none';
+            const accountingFailureBtn = document.getElementById('accounting-failure-stats-btn');
+            if (accountingFailureBtn) accountingFailureBtn.style.display = 'none';
         }
 
         renderResults(allResults);
@@ -816,6 +822,7 @@ function resetAndAnalyzeNew() {
     // مسح البيانات المحفوظة
     localStorage.removeItem('examStatistics');
     localStorage.removeItem('failureStatistics');
+    localStorage.removeItem('accountingFailureStatistics');
     allResults = [];
 
     // إعادة تحميل الصفحة بالكامل لضمان مسح كل شيء
@@ -946,3 +953,124 @@ function viewFailureStatistics() {
     window.location.href = 'failure-statistics.html';
 }
 
+async function processAccountingFailureStatistics(files, selectedAcademicYear = '2025-2026') {
+    try {
+        // بادئات أرقام الجلوس الخاصة بالمحاسبة وإدارة الأعمال
+        const validPrefixes = ['32', '33', '43', '44', '34'];
+
+        const allAccountingResults = [];
+
+        for (const file of files) {
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            if (worksheet['!ref']) {
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+                range.s.c = 0;
+                range.s.r = 0;
+                worksheet['!ref'] = XLSX.utils.encode_range(range);
+            }
+
+            let rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+
+            // قراءة اسم المادة من العمود F (index 5) في الصف الثاني
+            let courseName = 'غير محدد';
+            if (rows.length > 1 && rows[1] && rows[1][5]) {
+                courseName = String(rows[1][5]).trim();
+            }
+
+            const academicYear = selectedAcademicYear;
+            courseName = `تخلف - ${courseName} ${academicYear}`;
+
+            // إحصائيات كل فرقة/شعبة في هذا الملف
+            const fileLevelStats = {};
+
+            // قراءة العمود D (index 3) والعمود K (index 10)
+            for (let i = 1; i < rows.length; i++) {
+                if (!rows[i] || rows[i].length === 0) continue;
+
+                const studentId = String(rows[i][3] || '').trim(); // العمود D
+                const scoreStr = String(rows[i][10] || '').trim(); // العمود K
+
+                // تحقق من أن رقم الطالب له بادئة صالحة
+                if (!studentId || studentId.length < 2) continue;
+
+                const levelPrefix = studentId.substring(0, 2);
+                if (!validPrefixes.includes(levelPrefix)) continue;
+
+                // تهيئة البيانات للفرقة/الشعبة إذا لم تكن موجودة
+                if (!fileLevelStats[levelPrefix]) {
+                    fileLevelStats[levelPrefix] = {
+                        fileName: file.name,
+                        courseName: courseName,
+                        academicYear: academicYear,
+                        level: levelPrefix,
+                        totalStudents: 0,
+                        attendingStudents: 0,
+                        absentStudents: 0,
+                        passedStudents: 0,
+                        failedStudents: 0,
+                        students: []
+                    };
+                }
+
+                const stats = fileLevelStats[levelPrefix];
+                stats.totalStudents++;
+
+                // قراءة اسم الطالب من العمود B (index 1)
+                const studentName = String(rows[i][1] || '').trim();
+
+                const studentData = {
+                    seatNo: studentId,
+                    name: studentName,
+                    score: 0,
+                    status: ''
+                };
+
+                // تحقق من أن الدرجة رقم صحيح
+                const score = parseFloat(scoreStr);
+                if (isNaN(score)) {
+                    // غائب
+                    stats.absentStudents++;
+                    studentData.status = 'absent';
+                    studentData.score = '-';
+                } else {
+                    // حاضر
+                    stats.attendingStudents++;
+                    studentData.score = score;
+
+                    // حساب النجاح (50% من 100 = 50)
+                    if (score >= 50) {
+                        stats.passedStudents++;
+                        studentData.status = 'passed';
+                    } else {
+                        stats.failedStudents++;
+                        studentData.status = 'failed';
+                    }
+                }
+
+                stats.students.push(studentData);
+            }
+
+            // إضافة نتائج كل فرقة/شعبة في هذا الملف إلى المصفوفة النهائية
+            Object.values(fileLevelStats).forEach(stats => {
+                if (stats.totalStudents > 0) {
+                    allAccountingResults.push(stats);
+                }
+            });
+        }
+
+        // حفظ البيانات في localStorage بمفتاح منفصل تماماً
+        localStorage.setItem('accountingFailureStatistics', JSON.stringify(allAccountingResults));
+
+    } catch (error) {
+        console.error('Error processing accounting failure statistics:', error);
+    }
+}
+
+function viewAccountingFailureStatistics() {
+    // الانتقال لصفحة نسب نجاح تخلفات المحاسبة وإدارة الأعمال
+    window.location.href = 'accounting-failure-statistics.html';
+}
