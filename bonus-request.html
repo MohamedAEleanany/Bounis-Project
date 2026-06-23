@@ -260,15 +260,40 @@
                 <div class="form-container">
                     <h3 class="text-center mb-5 fw-bold text-primary">إنشاء نموذج طلب بونص</h3>
                     <form id="bonusForm">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">1. اسم المسؤول (متلقي الطلب)</label>
+                                <input type="text" class="form-control" id="recipientName" required
+                                    placeholder="أدخل اسم المسؤول">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">2. وظيفة المسؤول (الصفة)</label>
+                                <input type="text" class="form-control" id="recipientTitle" required
+                                    placeholder="أدخل وظيفة المسؤول">
+                            </div>
+                        </div>
+
                         <div class="mb-4">
-                            <label class="form-label fw-bold">1. عدد درجات البونص</label>
+                            <label class="form-label fw-bold">3. عدد درجات البونص</label>
                             <input type="text" class="form-control" id="bonusDegrees" required
                                 placeholder="أدخل عدد الدرجات">
                         </div>
 
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">2. الفرقة / المستوى</label>
+                                <label class="form-label fw-bold">4. الشعبة</label>
+                                <select class="form-select" id="section" required onchange="updateLevelOptions()">
+                                    <option value="" selected disabled>اختر الشعبة</option>
+                                    <option value="علوم حاسب (س.م)">علوم حاسب (س.م)</option>
+                                    <option value="علوم الحاسب">علوم الحاسب</option>
+                                    <option value="نظم معلومات الأعمال">نظم معلومات الأعمال</option>
+                                    <option value="نظم المعلومات الإدارية">نظم معلومات الإدارية</option>
+                                    <option value="المحاسبة المعدلة">المحاسبة المعدلة</option>
+                                    <option value="المحاسبة والمراجعة">المحاسبة والمراجعة</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">5. الفرقة / المستوى</label>
                                 <select class="form-select" id="level" required>
                                     <option value="" selected disabled>اختر الفرقة / المستوى</option>
                                     <option value="الفرقة الأولى">الفرقة الأولى</option>
@@ -280,25 +305,11 @@
                                     <option value="المستوى الثالث">المستوى الثالث</option>
                                     <option value="المستوى الرابع">المستوى الرابع</option>
                                 </select>
-
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">3. الشعبة</label>
-                                <select class="form-select" id="section" required onchange="updateLevelOptions()">
-                                    <option value="" selected disabled>اختر الشعبة</option>
-                                    <option value="علوم حاسب (س.م)">علوم حاسب (س.م)</option>
-                                    <option value="علوم الحاسب">علوم الحاسب</option>
-                                    <option value="نظم معلومات الأعمال">نظم معلومات الأعمال</option>
-                                    <option value="نظم المعلومات الإدارية">نظم المعلومات الإدارية</option>
-                                    <option value="المحاسبة المعدلة">المحاسبة المعدلة</option>
-                                    <option value="المحاسبة والمراجعة">المحاسبة والمراجعة</option>
-                                </select>
-
                             </div>
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">4. نوع الاختبار</label>
+                            <label class="form-label fw-bold">6. نوع الاختبار</label>
                             <select class="form-select" id="examType" required>
                                 <option value="" selected disabled>اختر نوع الاختبار</option>
                                 <option value="منتصف الفصل الدراسي الاول">منتصف الفصل الدراسي الاول</option>
@@ -311,13 +322,13 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">5. اسم المقرر</label>
+                            <label class="form-label fw-bold">7. اسم المقرر</label>
                             <input type="text" class="form-control" id="courseName" required
                                 placeholder="أدخل اسم المقرر">
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">6. العام الأكاديمي</label>
+                            <label class="form-label fw-bold">8. العام الأكاديمي</label>
                             <select class="form-select" id="academicYear" required>
                                 <option value="2025-2026">2025-2026</option>
                                 <option value="2026-2027">2026-2027</option>
@@ -329,13 +340,13 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">7.أ اسم دكتور المقرر</label>
+                            <label class="form-label fw-bold">9.أ اسم دكتور المقرر</label>
                             <input type="text" class="form-control" id="profName" required
                                 placeholder="اسم استاذ المقرر">
                         </div>
 
                         <div class="mb-5">
-                            <label class="form-label fw-bold">7.ب اسم استاذ ثاني للمقرر (اختياري)</label>
+                            <label class="form-label fw-bold">9.ب اسم استاذ ثاني للمقرر (اختياري)</label>
                             <input type="text" class="form-control" id="profName2"
                                 placeholder="اختياري - يظهر تحت الاسم الأول">
                         </div>
@@ -397,10 +408,10 @@
                     </div>
 
                     <div class="word-header" style="margin-bottom: 0px; font-size: 18pt;">
-                        السيد الاستاذ الدكتور / مصطفى محمد صالح
+                        السيد الاستاذ الدكتور / <span id="pRecipientName">مصطفى محمد صالح</span>
                     </div>
                     <div class="word-header" style="margin-bottom: 20px; font-size: 18pt; margin-right: 350px;">
-                        وكيل المعهد
+                        <span id="pRecipientTitle">وكيل المعهد</span>
                     </div>
                 </div>
 
@@ -436,6 +447,14 @@
     </div>
 
     <script>
+        function convertDigitsToArabic(text) {
+            if (text === null || text === undefined) return '';
+            const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            return text.toString().replace(/[0-9]/g, function (w) {
+                return arabicDigits[+w];
+            });
+        }
+
         const form = document.getElementById('bonusForm');
         const wordPreview = document.getElementById('wordPreview');
         const inputView = document.querySelector('.input-view');
@@ -510,7 +529,7 @@
             const isCombined = accountingSections.includes(sectionVal);
 
             // Fill Data
-            document.getElementById('pBonus').innerText = document.getElementById('bonusDegrees').value;
+            document.getElementById('pBonus').innerText = convertDigitsToArabic(document.getElementById('bonusDegrees').value);
 
             if (isCombined) {
                 // الفرقة تحتوي على الفرقة + الشعبة معاً (مثل "الفرقة الثالثة شعبة محاسبة")
@@ -519,30 +538,33 @@
                 if (shaabaIdx !== -1) {
                     const levelPart = levelVal.substring(0, shaabaIdx).trim();
                     const sectionPart = levelVal.substring(shaabaIdx).trim(); // "شعبة ..."
-                    document.getElementById('pLevel').innerText = levelPart;
-                    document.getElementById('pSection').innerText = sectionPart.replace('شعبة ', '');
-                    document.getElementById('headerSection').innerText = sectionVal;
+                    document.getElementById('pLevel').innerText = convertDigitsToArabic(levelPart);
+                    document.getElementById('pSection').innerText = convertDigitsToArabic(sectionPart.replace('شعبة ', ''));
+                    document.getElementById('headerSection').innerText = convertDigitsToArabic(sectionVal);
                 } else {
-                    document.getElementById('pLevel').innerText = levelVal;
-                    document.getElementById('pSection').innerText = sectionVal;
-                    document.getElementById('headerSection').innerText = sectionVal;
+                    document.getElementById('pLevel').innerText = convertDigitsToArabic(levelVal);
+                    document.getElementById('pSection').innerText = convertDigitsToArabic(sectionVal);
+                    document.getElementById('headerSection').innerText = convertDigitsToArabic(sectionVal);
                 }
             } else {
-                document.getElementById('pLevel').innerText = levelVal;
-                document.getElementById('pSection').innerText = sectionVal;
-                document.getElementById('headerSection').innerText = sectionVal;
+                document.getElementById('pLevel').innerText = convertDigitsToArabic(levelVal);
+                document.getElementById('pSection').innerText = convertDigitsToArabic(sectionVal);
+                document.getElementById('headerSection').innerText = convertDigitsToArabic(sectionVal);
             }
 
             const examSelect = document.getElementById('examType');
-            document.getElementById('pExam').innerText = examSelect.options[examSelect.selectedIndex].text;
-            document.getElementById('pCourse').innerText = document.getElementById('courseName').value;
-            document.getElementById('pYear').innerText = document.getElementById('academicYear').value;
-            document.getElementById('pProf').innerText = document.getElementById('profName').value;
+            document.getElementById('pExam').innerText = convertDigitsToArabic(examSelect.options[examSelect.selectedIndex].text);
+            document.getElementById('pCourse').innerText = convertDigitsToArabic(document.getElementById('courseName').value);
+            document.getElementById('pYear').innerText = convertDigitsToArabic(document.getElementById('academicYear').value);
+            document.getElementById('pProf').innerText = convertDigitsToArabic(document.getElementById('profName').value);
+
+            document.getElementById('pRecipientName').innerText = document.getElementById('recipientName').value;
+            document.getElementById('pRecipientTitle').innerText = document.getElementById('recipientTitle').value;
 
             // Handle Optional Second Professor
             const prof2 = document.getElementById('profName2').value;
             if (prof2) {
-                document.getElementById('pProf2').innerText = prof2;
+                document.getElementById('pProf2').innerText = convertDigitsToArabic(prof2);
                 document.getElementById('pProf2').style.display = 'block';
             } else {
                 document.getElementById('pProf2').innerText = '';
@@ -567,147 +589,127 @@
         });
 
         document.getElementById('downloadWordBtn').addEventListener('click', function () {
-            const content = document.querySelector('.border-frame').outerHTML;
             const courseName = document.getElementById('courseName').value || 'bonus-request';
+            const profNameValue = document.getElementById('pProf').innerText;
             const prof2Value = document.getElementById('profName2').value;
-            const prof2Html = prof2Value ? `<div style="margin-top: 10px;">${prof2Value}</div>` : '';
+            const recipientNameValue = document.getElementById('recipientName').value;
+            const recipientTitleValue = document.getElementById('recipientTitle').value;
+            const headerSectionText = document.getElementById('headerSection').innerText;
 
             const preHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
             <head>
                 <meta charset='utf-8'>
-                <title>Bonus Request</title>
+                <title>طلب بونص - ${courseName}</title>
                 <style>
+                    @page {
+                        size: A4;
+                        margin: 1.5cm;
+                    }
                     body { 
                         font-family: 'Simplified Arabic', 'Traditional Arabic', serif; 
                         font-size: 16pt; 
                         font-weight: bold;
                         direction: rtl; 
                         text-align: right;
-                        margin: 0.5cm; 
+                        background-color: white;
                     }
-                    .border-frame {
-                        border: 2px solid #000080;
-                        padding: 4px;
-                        width: 100%;
-                        height: 950px;
-                        position: relative;
-                        box-sizing: border-box;
-                    }
-                    .border-inner-thick {
-                        border: 4px solid #000080;
-                        padding: 20px;
-                        height: 98%; 
-                    }
-                    .corner-box {
-                        width: 20px; height: 20px;
-                        border: 2px solid #000080;
-                        background: white;
-                        position: absolute;
-                    }
-                    .p-tl { top: -10px; right: -10px; }
-                    .p-tr { top: -10px; left: -10px; }
-                    .p-bl { bottom: -10px; right: -10px; }
-                    .p-br { bottom: -10px; left: -10px; }
-
-                    .top-spacer { height: 20px; }
-                    
-                    
-                    .word-header { 
-                        font-family: 'Simplified Arabic', 'Traditional Arabic', serif; 
-                        font-weight: bold; 
-                        font-size: 22pt; 
-                    }
-                    .request-main-text {
-                        font-family: 'Simplified Arabic', 'Traditional Arabic', serif;
-                        font-size: 16pt;
+                    .variable-text {
                         font-weight: bold;
-                        line-height: 1.8;
-                        text-indent: 50px;
-                        margin-bottom: 30px;
                     }
-                    .variable-text { font-weight: bold; }
-                    .signature-section { margin-top: 50px; text-align: left; }
-                    .signature-block { 
-                        font-family: 'Simplified Arabic', 'Traditional Arabic', serif; 
-                        font-size: 18pt; 
-                        font-weight: bold;
-                        text-align: center; 
-                        display: inline-block; 
-                        margin-right: 60%; 
-                    } 
                 </style>
-            </head><body>`;
+            </head>
+            <body>`;
 
-            // Header for Word
+            // Header table with proper Word compatibility
             const headerTable = `
-            <table width="100%" dir="rtl" style="margin-bottom: 20px;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px; direction: rtl;">
                 <tr>
-                    <td align="right" style="font-size: 12pt; font-weight: bold; line-height: 1.2;"> <!-- Reduced -->
-                        <div style="text-align: center; display: inline-block;">
-                            <div>وزارة التعليم العالي</div>
-                            <div>معهد مصر العالي للتجارة و الحاسبات</div>
-                            <div>بالمنصورة</div>
-                            <div>شعبة <span id="headerSectionWord">${document.getElementById('section').value}</span></div>
-                        </div>
+                    <td align="right" valign="top" style="font-family: 'Simplified Arabic', serif; font-size: 14pt; font-weight: bold; line-height: 1.4; text-align: center; width: 45%;">
+                        وزارة التعليم العالي<br>
+                        معهد مصر العالي للتجارة والحاسبات<br>
+                        بالمنصورة<br>
+                        شعبة <span style="text-decoration: underline;">${headerSectionText}</span>
                     </td>
-                    <td align="left">
-                        <img src="logo2.jpg" width="80" height="auto"> <!-- Reduced -->
+                    <td width="10%">&nbsp;</td>
+                    <td align="left" valign="top" style="width: 45%;">
+                        <img src="logo2.jpg" width="90" height="auto" alt="Logo">
                     </td>
                 </tr>
             </table>
             `;
 
-            // Reconstruct content to ensure specific Word styling
-            const innerContent = `
-                <div class="border-inner-thick" style="border: 4px solid #000080; padding: 20px;">
-                    <div class="word-content">
-                        ${headerTable}
-                        <div class="word-header" style="margin-bottom: 0px; font-size: 18pt;">
-                            السيد الاستاذ الدكتور / مصطفى محمد صالح
-                        </div>
-                        <div class="word-header" style="margin-bottom: 20px; font-size: 18pt; margin-right: 350px;">
-                            وكيل المعهد
-                        </div>
-                        <div class="word-header" style="text-align: center; margin-bottom: 30px;">
-                            تحيه طيبه و بعد ،،،
-                        </div>
-                        <div class="request-main-text" style="font-family: 'Simplified Arabic', 'Traditional Arabic', serif; font-size: 16pt; font-weight: bold; text-indent: 50px; margin-bottom: 30px; line-height: 1.8;">
-                            برجاء التكرم من سيادتكم بإضافة 
-                            <span class="variable-text">${document.getElementById('pBonus').innerText}</span> 
-                            درجات بونص لجميع طلاب 
-                            <span class="variable-text">${document.getElementById('pLevel').innerText}</span> 
-                            شعبة 
-                            <span class="variable-text">${document.getElementById('pSection').innerText}</span> 
-                            في اختبارات 
-                            <span class="variable-text">${document.getElementById('pExam').innerText}</span> 
-                            لمقرر 
-                            <span class="variable-text">${document.getElementById('pCourse').innerText}</span> 
-                            في العام الاكاديمي 
-                            <span class="variable-text">${document.getElementById('pYear').innerText}</span>.
-                        </div>
-                        <div class="signature-section" style="text-align: left; margin-top: 50px;">
-                             <div class="signature-block" style="text-align: center; display: inline-block; margin-right: 60%;">
-                                مقدمه لسيادتكم<br>
-                                <div style="margin-top: 10px;">${document.getElementById('pProf').innerText}</div>
-                                ${prof2Html}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            // Recipient Table
+            const recipientTable = `
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 25px; direction: rtl;">
+                <tr>
+                    <td align="right" style="font-family: 'Simplified Arabic', serif; font-size: 18pt; font-weight: bold; line-height: 1.6;">
+                        السيد الأستاذ الدكتور / ${recipientNameValue}
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" style="font-family: 'Simplified Arabic', serif; font-size: 18pt; font-weight: bold; padding-right: 250px; line-height: 1.6;">
+                        ${recipientTitleValue}
+                    </td>
+                </tr>
+            </table>
             `;
 
-            const fullBody = `
-            <div class="border-frame" style="border: 2px solid #000080; padding: 4px; width: 100%; height: 950px; position: relative;">
-                <div style="position:absolute; top:-10px; right:-10px; width:20px; height:20px; border:2px solid #000080; background:white;"></div>
-                <div style="position:absolute; top:-10px; left:-10px; width:20px; height:20px; border:2px solid #000080; background:white;"></div>
-                <div style="position:absolute; bottom:-10px; right:-10px; width:20px; height:20px; border:2px solid #000080; background:white;"></div>
-                <div style="position:absolute; bottom:-10px; left:-10px; width:20px; height:20px; border:2px solid #000080; background:white;"></div>
-                ${innerContent}
-            </div>
+            // Signature Table
+            const signatureTable = `
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 50px; direction: rtl;">
+                <tr>
+                    <td width="55%">&nbsp;</td>
+                    <td width="45%" align="center" style="font-family: 'Simplified Arabic', serif; font-size: 18pt; font-weight: bold; line-height: 1.6;">
+                        مقدمه لسيادتكم<br>
+                        <span style="font-size: 16pt;">${profNameValue}</span>
+                        ${prof2Value ? `<br><span style="font-size: 16pt;">${prof2Value}</span>` : ''}
+                    </td>
+                </tr>
+            </table>
+            `;
+
+            // Document body inside double borders
+            const documentBody = `
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border: 2px solid #000080; width: 100%;">
+                <tr>
+                    <td style="padding: 4px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border: 4px solid #000080; width: 100%;">
+                            <tr>
+                                <td valign="top" align="right" style="padding: 30px 40px;">
+                                    ${headerTable}
+                                    
+                                    ${recipientTable}
+                                    
+                                    <div style="font-family: 'Simplified Arabic', serif; font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 30px; width: 100%;">
+                                        تحية طيبة وبعد ،،،
+                                    </div>
+                                    
+                                    <p dir="rtl" style="font-family: 'Simplified Arabic', serif; font-size: 17pt; font-weight: bold; line-height: 1.8; text-align: justify; text-indent: 50px; margin-bottom: 30px; margin-top: 10px;">
+                                        برجاء التكرم من سيادتكم بإضافة 
+                                        <span class="variable-text">${document.getElementById('pBonus').innerText}</span> 
+                                        درجات بونص لجميع طلاب 
+                                        <span class="variable-text">${document.getElementById('pLevel').innerText}</span> 
+                                        شعبة 
+                                        <span class="variable-text">${document.getElementById('pSection').innerText}</span> 
+                                        في اختبارات 
+                                        <span class="variable-text">${document.getElementById('pExam').innerText}</span> 
+                                        لمقرر 
+                                        <span class="variable-text">${document.getElementById('pCourse').innerText}</span> 
+                                        في العام الأكاديمي 
+                                        <span class="variable-text">${document.getElementById('pYear').innerText}</span>.
+                                    </p>
+                                    
+                                    ${signatureTable}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
             `;
 
             const postHtml = "</body></html>";
-            const html = preHtml + fullBody + postHtml;
+            const html = preHtml + documentBody + postHtml;
 
             const blob = new Blob(['\ufeff', html], {
                 type: 'application/msword'
