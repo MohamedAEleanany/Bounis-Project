@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مطابقة السيستمز</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 5px;
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            text-align: right;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-divider {
+            border: none;
+            border-top: 2px dashed #dee2e6;
+            margin: 1.5rem 0;
+        }
+
+        .file-group {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-group .group-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            color: #212529;
+        }
+
+        .file-group .group-desc {
+            font-size: 0.82rem;
+            color: #6c757d;
+            margin-bottom: 0.8rem;
+        }
+
+        .file-status {
+            font-size: 0.82rem;
+            margin-top: 0.3rem;
+            min-height: 1.1rem;
+            font-weight: 600;
+        }
+        .file-status.ok { color: #198754; }
+        .file-status.err { color: #dc3545; }
+
+        /* Results */
+        #results-area { display: none; }
+
+        .result-section {
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .result-section h5 {
+            font-weight: 700;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .table {
+            margin-bottom: 0;
+            text-align: center;
+            border-color: #dee2e6;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .val-a { font-weight: 700; color: #0d6efd; }
+        .val-b { font-weight: 700; color: #dc3545; }
+
+        .no-diff-msg {
+            text-align: center;
+            padding: 1.5rem;
+            color: #198754;
+            font-size: 0.95rem;
+            font-weight: 700;
+            background: #f0fff4;
+            border-radius: 6px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .summary-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-box .sum-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            color: #212529;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 0.4rem;
+        }
+
+        .summary-box table td,
+        .summary-box table th {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+
+            body {
+                background-color: white;
+                font-size: 10pt;
+            }
+
+            .container, .col-md-10 {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            #results-area .row {
+                margin: 0 !important;
+            }
+
+            .result-section {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6;
+                border-radius: 0;
+                padding: 0.6rem 0.8rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .summary-box {
+                border: 1px solid #dee2e6;
+                padding: 0.6rem 0.8rem;
+                margin-bottom: 0.8rem;
+            }
+
+            h5 {
+                font-size: 11pt;
+                font-weight: 700;
+                margin-bottom: 0.4rem;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 0.2rem;
+            }
+
+            #subject-title-text {
+                font-size: 13pt;
+                font-weight: 900;
+            }
+
+            .table {
+                font-size: 9pt;
+                width: 100% !important;
+            }
+
+            .table thead th {
+                background-color: #d3d3d3 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                font-size: 9pt;
+                padding: 0.25rem 0.4rem;
+            }
+
+            .table tbody td {
+                padding: 0.2rem 0.4rem;
+            }
+
+            .no-diff-msg {
+                padding: 0.5rem;
+                font-size: 9pt;
+            }
+
+            .badge {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            <!-- Upload Form -->
+            <div class="form-container" id="upload-section">
+
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0 fw-bold">🔍 مطابقة السيستمز</h5>
+                    <a href="index.html" class="btn btn-outline-secondary btn-sm fw-bold">← الرئيسية</a>
+                </div>
+
+                <hr class="section-divider">
+
+                <!-- File 1 -->
+                <div class="file-group">
+                    <div class="group-title">① رفع الـ BSheet (التحريري)</div>
+                    <div class="group-desc">
+                        عمود B = اسم الطالب &nbsp;|&nbsp; عمود D = رقم الجلوس &nbsp;|&nbsp; عمود K = الدرجة الكلية
+                        <br>يبدأ الحساب من الصف الثاني
+                    </div>
+                    <input type="file" class="form-control" id="file-bsheet" accept=".xlsx,.xls">
+                    <div class="file-status" id="status-bsheet"></div>
+                </div>
+
+                <!-- File 2 -->
+                <div class="file-group">
+                    <div class="group-title">② أعمال السنة والميد ترم من المنصة</div>
+                    <div class="group-desc">
+                        عمود A = رقم الجلوس &nbsp;|&nbsp; عمود B = اسم الطالب &nbsp;|&nbsp; عمود D = ميد ترم &nbsp;|&nbsp; عمود E = أعمال السنة
+                        <br>يبدأ الحساب من الصف الثاني
+                    </div>
+                    <input type="file" class="form-control" id="file-platform" accept=".xlsx,.xls">
+                    <div class="file-status" id="status-platform"></div>
+                </div>
+
+                <!-- File 3 -->
+                <div class="file-group">
+                    <div class="group-title">③ ابن الهيثم</div>
+                    <div class="group-desc">
+                        عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; عمود E = أعمال السنة &nbsp;|&nbsp; عمود F = درجة التحريري &nbsp;|&nbsp; عمود G = ميد ترم
+                        <br>يبدأ الحساب من الصف الثالث
+                    </div>
+                    <input type="file" class="form-control" id="file-ibnhaytham" accept=".xlsx,.xls">
+                    <div class="file-status" id="status-ibnhaytham"></div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-primary fw-bold" id="analyze-btn" onclick="runAnalysis()" disabled>
+                        بدء المقارنة
+                    </button>
+                </div>
+
+            </div>
+            <!-- /Upload Form -->
+
+        </div>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="container" id="results-area">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+
+            <!-- Action buttons -->
+            <div class="d-flex gap-2 mt-3 mb-3 no-print flex-wrap align-items-center">
+                <button onclick="window.print()" class="btn btn-success fw-bold">🖨️ طباعة</button>
+                <button onclick="resetPage()" class="btn btn-secondary fw-bold">← تحليل ملفات أخرى</button>
+            </div>
+
+            <!-- Subject Title -->
+            <div id="subject-title-box" class="result-section text-center mb-2" style="padding:0.9rem 1.5rem;">
+                <h5 class="mb-0 fw-bold" id="subject-title-text" style="font-size:1.15rem;"></h5>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-box result-section" id="summary-box">
+                <div class="sum-title">إجمالي المطابقة</div>
+                <table class="table table-bordered mb-0" id="summary-table">
+                    <thead>
+                        <tr>
+                            <th>البيان</th>
+                            <th>إجمالي الطلاب المقارنين</th>
+                            <th>عدد المتطابق</th>
+                            <th>عدد المختلف</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summary-tbody"></tbody>
+                </table>
+            </div>
+
+            <!-- Diff Table 1: Written -->
+            <div class="result-section" id="section-written">
+                <h5 id="title-written">اختلافات درجة التحريري — BSheet مقابل ابن الهيثم</h5>
+                <div id="table-written"></div>
+            </div>
+
+            <!-- Diff Table 2: Midterm -->
+            <div class="result-section" id="section-midterm">
+                <h5 id="title-midterm">اختلافات الميد ترم — المنصة مقابل ابن الهيثم</h5>
+                <div id="table-midterm"></div>
+            </div>
+
+            <!-- Diff Table 3: Yearwork -->
+            <div class="result-section" id="section-yearwork">
+                <h5 id="title-yearwork">اختلافات أعمال السنة — المنصة مقابل ابن الهيثم</h5>
+                <div id="table-yearwork"></div>
+            </div>
+
+            <!-- Extra Students -->
+            <div class="result-section" id="section-extra" style="display:none">
+                <h5 id="title-extra">طلاب زيادة (غير موجودين في جميع الملفات)</h5>
+                <div id="table-extra"></div>
+            </div>
+
+            <!-- Hirmaan Table -->
+            <div class="result-section" id="section-hirmaan" style="display:none">
+                <h5 id="title-hirmaan">طلاب الحرمان (محـ) — ابن الهيثم</h5>
+                <div id="table-hirmaan"></div>
+            </div>
+
+            <!-- Ghayab Od'r Table -->
+            <div class="result-section" id="section-ghaodhr" style="display:none">
+                <h5 id="title-ghaodhr">طلاب الغياب بعذر (غ ع) — ابن الهيثم</h5>
+                <div id="table-ghaodhr"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- SheetJS from unpkg (more reliable) -->
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+// =============================================
+//  STATE
+// =============================================
+let dataBsheet = null;
+let dataPlatform = null;
+let dataIbnHaytham = null;
+
+// Column indices (0-based): A=0, B=1, C=2, D=3, E=4, F=5, G=6, K=10
+const COL = { A:0, B:1, C:2, D:3, E:4, F:5, G:6, K:10 };
+
+// =============================================
+//  FILE INPUT SETUP
+// =============================================
+function setupFileInput(inputId, statusId, setter, skipRows) {
+    document.getElementById(inputId).addEventListener('change', function () {
+        const sta = document.getElementById(statusId);
+        if (!this.files || !this.files[0]) {
+            sta.textContent = '';
+            sta.className = 'file-status';
+            setter(null);
+            updateBtn();
+            return;
+        }
+        sta.textContent = 'جاري القراءة...';
+        sta.className = 'file-status';
+        readExcel(this.files[0], function(rows, err) {
+            if (err) {
+                sta.textContent = 'خطأ في قراءة الملف';
+                sta.className = 'file-status err';
+                setter(null);
+            } else {
+                var count = rows.length - skipRows;
+                sta.textContent = '(' + count + ' صف بيانات)';
+                sta.className = 'file-status ok';
+                setter(rows);
+            }
+            updateBtn();
+        });
+    });
+}
+
+function readExcel(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, { type: 'array', raw: true });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+            callback(rows, null);
+        } catch(ex) {
+            callback(null, ex.message);
+        }
+    };
+    reader.onerror = function() { callback(null, 'فشل القراءة'); };
+    reader.readAsArrayBuffer(file);
+}
+
+function updateBtn() {
+    document.getElementById('analyze-btn').disabled = !(dataBsheet && dataPlatform && dataIbnHaytham);
+}
+
+setupFileInput('file-bsheet',    'status-bsheet',    function(d){ dataBsheet = d; },    1);
+setupFileInput('file-platform',  'status-platform',  function(d){ dataPlatform = d; },  1);
+setupFileInput('file-ibnhaytham','status-ibnhaytham',function(d){ dataIbnHaytham = d; },2);
+
+// =============================================
+//  HELPERS
+// =============================================
+function cell(row, col) {
+    if (!row || row[col] === undefined || row[col] === null) return '';
+    return String(row[col]).trim();
+}
+
+function normId(v) {
+    var s = String(v).trim().replace(/\s+/g, '');
+    // Remove trailing decimal zeros: "3126001.0" -> "3126001"
+    s = s.replace(/\.0+$/, '');
+    // If purely numeric, parse as integer to strip leading zeros
+    var n = parseInt(s, 10);
+    if (!isNaN(n) && /^\d+$/.test(s)) return String(n);
+    return s;
+}
+
+function normVal(v) {
+    var s = String(v).trim();
+    // treat غياب and غ as the same
+    if (s === 'غياب') s = 'غ';
+    return s;
+}
+
+function isDiff(a, b) {
+    var sa = normVal(a);
+    var sb = normVal(b);
+    var na = parseFloat(sa), nb = parseFloat(sb);
+    if (!isNaN(na) && !isNaN(nb)) return na !== nb;
+    return sa !== sb;
+}
+
+function safeVal(v) {
+    var s = String(v).trim();
+    return s === '' ? '—' : s;
+}
+
+function esc(s) {
+    return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function diffLabel(a, b) {
+    var sa = String(a).trim(), sb = String(b).trim();
+    var na = parseFloat(sa), nb = parseFloat(sb);
+    if (!isNaN(na) && !isNaN(nb)) {
+        var d = nb - na;
+        if (d > 0) return '<span class="badge bg-success">+' + d + '</span>';
+        return '<span class="badge bg-danger">' + d + '</span>';
+    }
+    return '<span class="badge bg-warning text-dark">نصي</span>';
+}
+
+// =============================================
+//  ANALYSIS
+// =============================================
+function runAnalysis() {
+    var btn = document.getElementById('analyze-btn');
+    btn.disabled = true;
+    btn.textContent = 'جاري المقارنة...';
+
+    setTimeout(function() {
+        try { doAnalysis(); }
+        catch(e) { alert('خطأ: ' + e.message); console.error(e); }
+        btn.disabled = false;
+        btn.textContent = 'بدء المقارنة';
+    }, 50);
+}
+
+function doAnalysis() {
+    // Subject name from BSheet col F (index 5), row 1
+    var subjectName = '';
+    if (dataBsheet.length > 1) {
+        subjectName = cell(dataBsheet[1], COL.F);
+    }
+    var titleEl = document.getElementById('subject-title-text');
+    titleEl.textContent = subjectName || '—';
+
+    // Parse BSheet: rows from index 1, cols B(1)=name, D(3)=seat, K(10)=grade
+    var bsMap = {};
+    for (var i = 1; i < dataBsheet.length; i++) {
+        var r = dataBsheet[i];
+        var seat = normId(cell(r, COL.D));
+        if (!seat) continue;
+        bsMap[seat] = { name: cell(r, COL.B), grade: cell(r, COL.K) };
+    }
+
+    // Parse Platform: rows from index 1, cols A(0)=seat, B(1)=name, D(3)=mid, E(4)=year
+    var plMap = {};
+    for (var i = 1; i < dataPlatform.length; i++) {
+        var r = dataPlatform[i];
+        var seat = normId(cell(r, COL.A));
+        if (!seat) continue;
+        plMap[seat] = { name: cell(r, COL.B), midterm: cell(r, COL.D), yearwork: cell(r, COL.E) };
+    }
+
+    // Parse IbnHaytham: rows from index 2, cols A(0)=seat, D(3)=name, E(4)=year, F(5)=written, G(6)=mid
+    var ibnMap = {};
+    for (var i = 2; i < dataIbnHaytham.length; i++) {
+        var r = dataIbnHaytham[i];
+        var seat = normId(cell(r, COL.A));
+        if (!seat) continue;
+        ibnMap[seat] = { name: cell(r, COL.D), yearwork: cell(r, COL.E), written: cell(r, COL.F), midterm: cell(r, COL.G) };
+    }
+
+    // Comparison 1: BSheet(K) vs Ibn(F)
+    var seatsW  = Object.keys(bsMap).filter(function(s){ return ibnMap[s]; });
+    var diffW = [], matchW = 0;
+    seatsW.forEach(function(s) {
+        if (isDiff(bsMap[s].grade, ibnMap[s].written)) {
+            diffW.push({ seat:s, name: bsMap[s].name || ibnMap[s].name, a: bsMap[s].grade, b: ibnMap[s].written });
+        } else { matchW++; }
+    });
+
+    // Comparison 2: Platform(D) vs Ibn(G)
+    var seatsM  = Object.keys(plMap).filter(function(s){ return ibnMap[s]; });
+    var diffM = [], matchM = 0;
+    seatsM.forEach(function(s) {
+        if (isDiff(plMap[s].midterm, ibnMap[s].midterm)) {
+            diffM.push({ seat:s, name: plMap[s].name || ibnMap[s].name, a: plMap[s].midterm, b: ibnMap[s].midterm });
+        } else { matchM++; }
+    });
+
+    // Comparison 3: Platform(E) vs Ibn(E)
+    var seatsY  = Object.keys(plMap).filter(function(s){ return ibnMap[s]; });
+    var diffY = [], matchY = 0;
+    seatsY.forEach(function(s) {
+        if (isDiff(plMap[s].yearwork, ibnMap[s].yearwork)) {
+            diffY.push({ seat:s, name: plMap[s].name || ibnMap[s].name, a: plMap[s].yearwork, b: ibnMap[s].yearwork });
+        } else { matchY++; }
+    });
+
+    // Extra students: present in some files but not all three
+    var allSeats = {};
+    Object.keys(bsMap).forEach(function(s)  { allSeats[s] = allSeats[s] || {}; allSeats[s].bs  = bsMap[s].name  || '—'; });
+    Object.keys(plMap).forEach(function(s)  { allSeats[s] = allSeats[s] || {}; allSeats[s].pl  = plMap[s].name  || '—'; });
+    Object.keys(ibnMap).forEach(function(s) { allSeats[s] = allSeats[s] || {}; allSeats[s].ibn = ibnMap[s].name || '—'; });
+
+    var extraStudents = [];
+    Object.keys(allSeats).forEach(function(s) {
+        var entry = allSeats[s];
+        var inBs  = !!bsMap[s];
+        var inPl  = !!plMap[s];
+        var inIbn = !!ibnMap[s];
+        if (!(inBs && inPl && inIbn)) {
+            var name = entry.bs || entry.pl || entry.ibn || '—';
+            var sources = [];
+            if (inBs)  sources.push('BSheet');
+            if (inPl)  sources.push('المنصة');
+            if (inIbn) sources.push('ابن الهيثم');
+            extraStudents.push({ seat: s, name: name, sources: sources });
+        }
+    });
+
+    // Hirmaan (محـ) and Ghayab Odhr (غ ع) from Ibn Al-Haytham col F
+    var hirmaanList = [];
+    var ghaOdhrList = [];
+    Object.keys(ibnMap).forEach(function(s) {
+        var written = String(ibnMap[s].written).trim();
+        var name = ibnMap[s].name || '—';
+        // Hirmaan: starts with محـ or محـ or just مح
+        if (/^مح/.test(written)) {
+            hirmaanList.push({ seat: s, name: name, val: written });
+        }
+        // Ghayab Odhr: غ ع or غع
+        if (/^غ\s*ع/.test(written)) {
+            ghaOdhrList.push({ seat: s, name: name, val: written });
+        }
+    });
+
+    render(seatsW, matchW, diffW, seatsM, matchM, diffM, seatsY, matchY, diffY, hirmaanList, ghaOdhrList);
+    renderExtra(extraStudents);
+    renderSpecialList('section-hirmaan', 'title-hirmaan', 'table-hirmaan', hirmaanList,
+        'طلاب الحرمان (محـ) — ابن الهيثم', 'درجة ابن الهيثم');
+    renderSpecialList('section-ghaodhr', 'title-ghaodhr', 'table-ghaodhr', ghaOdhrList,
+        'طلاب الغياب بعذر (غ ع) — ابن الهيثم', 'درجة ابن الهيثم');
+
+    document.getElementById('upload-section').style.display = 'none';
+    document.getElementById('results-area').style.display = 'block';
+    window.scrollTo(0,0);
+}
+
+// =============================================
+//  RENDER
+// =============================================
+function render(seatsW, matchW, diffW, seatsM, matchM, diffM, seatsY, matchY, diffY, hirmaanList, ghaOdhrList) {
+    // Summary table
+    var rows = [
+        { label:'درجة التحريري — BSheet مقابل ابن الهيثم', total: seatsW.length, match: matchW, diff: diffW.length },
+        { label:'الميد ترم — المنصة مقابل ابن الهيثم',      total: seatsM.length, match: matchM, diff: diffM.length },
+        { label:'أعمال السنة — المنصة مقابل ابن الهيثم',    total: seatsY.length, match: matchY, diff: diffY.length },
+    ];
+    var sbodyHtml = '';
+    rows.forEach(function(row) {
+        var diffColor = row.diff > 0 ? 'text-danger fw-bold' : 'text-success fw-bold';
+        sbodyHtml += '<tr>' +
+            '<td class="text-end">' + row.label + '</td>' +
+            '<td>' + row.total + '</td>' +
+            '<td class="text-success fw-bold">' + row.match + '</td>' +
+            '<td class="' + diffColor + '">' + row.diff + '</td>' +
+            '</tr>';
+    });
+    // Add hirmaan and ghayab rows (span all columns style)
+    sbodyHtml += '<tr class="table-warning">' +
+        '<td class="text-end fw-bold">عدد طلاب الحرمان (محـ) — ابن الهيثم</td>' +
+        '<td colspan="3" class="fw-bold text-danger">' + hirmaanList.length + ' طالب</td>' +
+        '</tr>';
+    sbodyHtml += '<tr class="table-info">' +
+        '<td class="text-end fw-bold">عدد طلاب الغياب بعذر (غ ع) — ابن الهيثم</td>' +
+        '<td colspan="3" class="fw-bold text-primary">' + ghaOdhrList.length + ' طالب</td>' +
+        '</tr>';
+    document.getElementById('summary-tbody').innerHTML = sbodyHtml;
+
+    // Diff tables — set title with count, then render table
+    function setSection(titleId, tableId, diffs, baseTitle, labelA, labelB) {
+        var countTxt = diffs.length > 0
+            ? ' <span style="font-size:0.82rem;font-weight:600;color:#dc3545;">( اختلافات: ' + diffs.length + ' طالب )</span>'
+            : ' <span style="font-size:0.82rem;font-weight:600;color:#198754;">( لا يوجد اختلاف )</span>';
+        document.getElementById(titleId).innerHTML = baseTitle + countTxt;
+        document.getElementById(tableId).innerHTML = buildDiffTable(diffs, labelA, labelB);
+    }
+
+    setSection('title-written',  'table-written',  diffW, 'اختلافات درجة التحريري — BSheet مقابل ابن الهيثم',   'BSheet',   'ابن الهيثم');
+    setSection('title-midterm',  'table-midterm',  diffM, 'اختلافات الميد ترم — المنصة مقابل ابن الهيثم',      'المنصة',   'ابن الهيثم');
+    setSection('title-yearwork', 'table-yearwork', diffY, 'اختلافات أعمال السنة — المنصة مقابل ابن الهيثم',   'المنصة',   'ابن الهيثم');
+}
+
+function buildDiffTable(diffs, labelA, labelB) {
+    if (diffs.length === 0) {
+        return '<div class="no-diff-msg">لا توجد اختلافات — جميع الدرجات متطابقة</div>';
+    }
+    var rows = '';
+    diffs.forEach(function(d, idx) {
+        rows += '<tr>' +
+            '<td>' + (idx+1) + '</td>' +
+            '<td><strong>' + esc(d.seat) + '</strong></td>' +
+            '<td class="text-end">' + esc(d.name) + '</td>' +
+            '<td class="val-a">' + esc(safeVal(d.a)) + '</td>' +
+            '<td class="val-b">' + esc(safeVal(d.b)) + '</td>' +
+            '</tr>';
+    });
+    return '<div class="table-responsive">' +
+        '<table class="table table-bordered table-sm table-hover">' +
+        '<thead><tr>' +
+            '<th>#</th>' +
+            '<th>رقم الجلوس</th>' +
+            '<th>اسم الطالب</th>' +
+            '<th>' + esc(labelA) + '</th>' +
+            '<th>' + esc(labelB) + '</th>' +
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+        '</table></div>';
+}
+
+
+function renderExtra(extras) {
+    var sec = document.getElementById('section-extra');
+    var div = document.getElementById('table-extra');
+    if (extras.length === 0) {
+        sec.style.display = 'none';
+        div.innerHTML = '';
+        return;
+    }
+    sec.style.display = 'block';
+    var rows = '';
+    extras.forEach(function(e, idx) {
+        rows += '<tr>' +
+            '<td>' + (idx+1) + '</td>' +
+            '<td><strong>' + esc(e.seat) + '</strong></td>' +
+            '<td class="text-end">' + esc(e.name) + '</td>' +
+            '<td>' + e.sources.map(function(s){ return '<span class="badge bg-secondary me-1">' + esc(s) + '</span>'; }).join('') + '</td>' +
+            '</tr>';
+    });
+    div.innerHTML = '<div class="table-responsive">' +
+        '<table class="table table-bordered table-sm table-hover">' +
+        '<thead><tr>' +
+            '<th>#</th>' +
+            '<th>رقم الجلوس</th>' +
+            '<th>اسم الطالب</th>' +
+            '<th>موجود في</th>' +
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+        '</table></div>' +
+        '<p class="text-end text-muted mb-0" style="font-size:0.85rem;font-weight:700;">إجمالي الطلاب الزيادة: <strong class="text-warning">' + extras.length + '</strong> طالب</p>';
+}
+
+function renderSpecialList(secId, titleId, tableId, list, baseTitle, colLabel) {
+    var sec = document.getElementById(secId);
+    var div = document.getElementById(tableId);
+    var countTxt = ' <span style="font-size:0.82rem;font-weight:600;color:#dc3545;">( ' + list.length + ' طالب )</span>';
+    document.getElementById(titleId).innerHTML = baseTitle + countTxt;
+    if (list.length === 0) {
+        sec.style.display = 'none';
+        div.innerHTML = '';
+        return;
+    }
+    sec.style.display = 'block';
+    var rows = '';
+    list.forEach(function(e, idx) {
+        rows += '<tr>' +
+            '<td>' + (idx+1) + '</td>' +
+            '<td><strong>' + esc(e.seat) + '</strong></td>' +
+            '<td class="text-end">' + esc(e.name) + '</td>' +
+            '<td class="fw-bold text-danger">' + esc(e.val) + '</td>' +
+            '</tr>';
+    });
+    div.innerHTML = '<div class="table-responsive">' +
+        '<table class="table table-bordered table-sm table-hover">' +
+        '<thead><tr>' +
+            '<th>#</th>' +
+            '<th>رقم الجلوس</th>' +
+            '<th>اسم الطالب</th>' +
+            '<th>' + esc(colLabel) + '</th>' +
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+        '</table></div>';
+}
+
+// =============================================
+//  RESET
+// =============================================
+function resetPage() {
+    dataBsheet = dataPlatform = dataIbnHaytham = null;
+    ['file-bsheet','file-platform','file-ibnhaytham'].forEach(function(id){ document.getElementById(id).value = ''; });
+    ['status-bsheet','status-platform','status-ibnhaytham'].forEach(function(id){
+        var el = document.getElementById(id);
+        el.textContent = ''; el.className = 'file-status';
+    });
+    document.getElementById('analyze-btn').disabled = true;
+    document.getElementById('results-area').style.display = 'none';
+    document.getElementById('upload-section').style.display = 'block';
+    document.getElementById('summary-tbody').innerHTML = '';
+    document.getElementById('table-written').innerHTML = '';
+    document.getElementById('table-midterm').innerHTML = '';
+    document.getElementById('table-yearwork').innerHTML = '';
+    document.getElementById('table-extra').innerHTML = '';
+    document.getElementById('section-extra').style.display = 'none';
+    document.getElementById('table-hirmaan').innerHTML = '';
+    document.getElementById('section-hirmaan').style.display = 'none';
+    document.getElementById('table-ghaodhr').innerHTML = '';
+    document.getElementById('section-ghaodhr').style.display = 'none';
+    window.scrollTo(0,0);
+}
+</script>
+
+</body>
+</html>
