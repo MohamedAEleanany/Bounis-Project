@@ -226,6 +226,20 @@
 
                 <hr class="section-divider">
 
+                <!-- Year Level Selector -->
+                <div class="file-group">
+                    <label class="form-label" for="year-level-select">🎓 اختر الفرقة الدراسية</label>
+                    <select class="form-select fw-bold" id="year-level-select" onchange="onYearLevelChange()">
+                        <option value="first">الفرقة الأولى</option>
+                        <option value="other">الفرقة الثانية</option>
+                        <option value="other">الفرقة الثالثة</option>
+                        <option value="other">الفرقة الرابعة</option>
+                    </select>
+
+                </div>
+
+                <hr class="section-divider">
+
                 <!-- File 1 -->
                 <div class="file-group">
                     <div class="group-title">① رفع الـ BSheet (التحريري)</div>
@@ -251,7 +265,7 @@
                 <!-- File 3 -->
                 <div class="file-group">
                     <div class="group-title">③ ابن الهيثم</div>
-                    <div class="group-desc">
+                    <div class="group-desc" id="ibn-col-desc">
                         عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; عمود E = أعمال السنة &nbsp;|&nbsp; عمود F = درجة التحريري &nbsp;|&nbsp; عمود G = ميد ترم
                         <br>يبدأ الحساب من الصف الثالث
                     </div>
@@ -511,13 +525,18 @@ function doAnalysis() {
         plMap[seat] = { name: cell(r, COL.B), midterm: cell(r, COL.D), yearwork: cell(r, COL.E) };
     }
 
-    // Parse IbnHaytham: rows from index 2, cols A(0)=seat, D(3)=name, E(4)=year, F(5)=written, G(6)=mid
+    // Parse IbnHaytham: rows from index 2, cols A(0)=seat, D(3)=name, E(4)=year
+    // الفرقة الأولى:  F(5)=تحريري  G(6)=ميد ترم
+    // الفرقة الثانية/الثالثة/الرابعة: G(6)=تحريري  F(5)=ميد ترم
+    var yearLevelVal = document.getElementById('year-level-select').value;
+    var ibnWrittenCol = (yearLevelVal === 'first') ? COL.F : COL.G;
+    var ibnMidtermCol = (yearLevelVal === 'first') ? COL.G : COL.F;
     var ibnMap = {};
     for (var i = 2; i < dataIbnHaytham.length; i++) {
         var r = dataIbnHaytham[i];
         var seat = normId(cell(r, COL.A));
         if (!seat) continue;
-        ibnMap[seat] = { name: cell(r, COL.D), yearwork: cell(r, COL.E), written: cell(r, COL.F), midterm: cell(r, COL.G) };
+        ibnMap[seat] = { name: cell(r, COL.D), yearwork: cell(r, COL.E), written: cell(r, ibnWrittenCol), midterm: cell(r, ibnMidtermCol) };
     }
 
     // Comparison 1: BSheet(K) vs Ibn(F)
@@ -758,6 +777,24 @@ function resetPage() {
     document.getElementById('section-ghaodhr').style.display = 'none';
     window.scrollTo(0,0);
 }
+
+// =============================================
+//  YEAR LEVEL CHANGE
+// =============================================
+function onYearLevelChange() {
+    var sel = document.getElementById('year-level-select');
+    var isFirst = sel.value === 'first';
+    var descEl  = document.getElementById('ibn-col-desc');
+
+    if (isFirst) {
+        descEl.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; عمود E = أعمال السنة &nbsp;|&nbsp; <strong>عمود F = درجة التحريري</strong> &nbsp;|&nbsp; <strong>عمود G = ميد ترم</strong><br>يبدأ الحساب من الصف الثالث';
+    } else {
+        descEl.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; عمود E = أعمال السنة &nbsp;|&nbsp; <strong>عمود G = درجة التحريري</strong> &nbsp;|&nbsp; <strong>عمود F = ميد ترم</strong><br>يبدأ الحساب من الصف الثالث';
+    }
+}
+
+// Init note on page load
+onYearLevelChange();
 </script>
 
 </body>
