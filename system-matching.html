@@ -226,8 +226,18 @@
 
                 <hr class="section-divider">
 
-                <!-- Year Level Selector -->
+                <!-- Curriculum Selector -->
                 <div class="file-group">
+                    <label class="form-label" for="laee7a-select">اختر اللائحة الدراسية</label>
+                    <select class="form-select fw-bold" id="laee7a-select" onchange="onLaee7aChange()">
+                        <option value="new">لائحة جديدة</option>
+                        <option value="old-theory">لائحة قديمة — نظري فقط (25-75)</option>
+                        <option value="old-practical">لائحة قديمة — عملي (15-75-10)</option>
+                    </select>
+                </div>
+
+                <!-- Year Level Selector -->
+                <div class="file-group" id="year-level-group">
                     <label class="form-label" for="year-level-select">🎓 اختر الفرقة الدراسية</label>
                     <select class="form-select fw-bold" id="year-level-select" onchange="onYearLevelChange()">
                         <option value="first">الفرقة الأولى</option>
@@ -235,7 +245,6 @@
                         <option value="other">الفرقة الثالثة</option>
                         <option value="other">الفرقة الرابعة</option>
                     </select>
-
                 </div>
 
                 <hr class="section-divider">
@@ -253,8 +262,8 @@
 
                 <!-- File 2 -->
                 <div class="file-group">
-                    <div class="group-title">② أعمال السنة والميد ترم من المنصة</div>
-                    <div class="group-desc">
+                    <div class="group-title" id="platform-group-title">② أعمال السنة والميد ترم من المنصة</div>
+                    <div class="group-desc" id="platform-col-desc">
                         عمود A = رقم الجلوس &nbsp;|&nbsp; عمود B = اسم الطالب &nbsp;|&nbsp; عمود D = ميد ترم &nbsp;|&nbsp; عمود E = أعمال السنة
                         <br>يبدأ الحساب من الصف الثاني
                     </div>
@@ -294,12 +303,18 @@
             <!-- Action buttons -->
             <div class="d-flex gap-2 mt-3 mb-3 no-print flex-wrap align-items-center">
                 <button onclick="window.print()" class="btn btn-success fw-bold">🖨️ طباعة</button>
+                <button onclick="openZerosPage()" class="btn btn-warning fw-bold">حصر الأصفار</button>
                 <button onclick="resetPage()" class="btn btn-secondary fw-bold">← تحليل ملفات أخرى</button>
             </div>
 
             <!-- Subject Title -->
             <div id="subject-title-box" class="result-section text-center mb-2" style="padding:0.9rem 1.5rem;">
                 <h5 class="mb-0 fw-bold" id="subject-title-text" style="font-size:1.15rem;"></h5>
+            </div>
+
+            <!-- Match Timestamp -->
+            <div id="match-timestamp-box" class="result-section text-center mb-2" style="padding:0.6rem 1.5rem; background:#f8f9fa; border:1px solid #dee2e6; border-radius:8px; font-size:0.92rem; color:#495057; font-weight:600;">
+                تم عمل التطابق بتاريخ: <span id="match-timestamp-text" style="color:#0d6efd;"></span>
             </div>
 
             <!-- Summary -->
@@ -491,7 +506,15 @@ function runAnalysis() {
     btn.textContent = 'جاري المقارنة...';
 
     setTimeout(function() {
-        try { doAnalysis(); }
+        try { 
+            doAnalysis(); 
+            // حفظ الحالة في sessionStorage للاسترجاع لاحقاً
+            sessionStorage.setItem('dataBsheet', JSON.stringify(dataBsheet));
+            sessionStorage.setItem('dataPlatform', JSON.stringify(dataPlatform));
+            sessionStorage.setItem('dataIbnHaytham', JSON.stringify(dataIbnHaytham));
+            sessionStorage.setItem('yearLevelVal', document.getElementById('year-level-select').value);
+            sessionStorage.setItem('laee7aVal', document.getElementById('laee7a-select').value);
+        }
         catch(e) { alert('خطأ: ' + e.message); console.error(e); }
         btn.disabled = false;
         btn.textContent = 'بدء المقارنة';
@@ -499,15 +522,27 @@ function runAnalysis() {
 }
 
 function doAnalysis() {
-    // Subject name from BSheet col F (index 5), row 1
-    var subjectName = '';
-    if (dataBsheet.length > 1) {
-        subjectName = cell(dataBsheet[1], COL.F);
-    }
-    var titleEl = document.getElementById('subject-title-text');
-    titleEl.textContent = subjectName || '—';
+    var laee7a    = document.getElementById('laee7a-select').value;
+    var yearLevel = document.getElementById('year-level-select').value;
 
-    // Parse BSheet: rows from index 1, cols B(1)=name, D(3)=seat, K(10)=grade
+    // Subject name from BSheet col F row 1
+    var subjectName = '';
+    if (dataBsheet.length > 1) subjectName = cell(dataBsheet[1], COL.F);
+    document.getElementById('subject-title-text').textContent = subjectName || '—';
+
+    // Timestamp
+    var now = new Date();
+    var days   = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    var dayName = days[now.getDay()];
+    var dd   = String(now.getDate()).padStart(2,'0');
+    var mm   = String(now.getMonth()+1).padStart(2,'0');
+    var yyyy = now.getFullYear();
+    var hh   = String(now.getHours()).padStart(2,'0');
+    var min  = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('match-timestamp-text').textContent =
+        dayName + ' ' + dd + '/' + mm + '/' + yyyy + ' الساعة ' + hh + ':' + min;
+
+    // === Parse BSheet (same for all curricula) ===
     var bsMap = {};
     for (var i = 1; i < dataBsheet.length; i++) {
         var r = dataBsheet[i];
@@ -516,31 +551,92 @@ function doAnalysis() {
         bsMap[seat] = { name: cell(r, COL.B), grade: cell(r, COL.K) };
     }
 
-    // Parse Platform: rows from index 1, cols A(0)=seat, B(1)=name, D(3)=mid, E(4)=year
+    // === Column config based on curriculum ===
+    var ibnWrittenCol;  // ibn column for written (BSheet comparison)
+    var ibnComp2Col;    // ibn column for comparison 2 (midterm/yearwork/total25)
+    var ibnComp3Col;    // ibn column for comparison 3 (yearwork/practical), null if not used
+    var plComp2Key;     // platform key for comparison 2
+    var plComp3Key;     // platform key for comparison 3, null if not used
+    var comp2Label, comp2LabelA, comp2LabelB, comp2Summary;
+    var comp3Label, comp3LabelA, comp3LabelB, comp3Summary, showComp3;
+
+    if (laee7a === 'new') {
+        ibnWrittenCol = (yearLevel === 'first') ? COL.F : COL.G;
+        ibnComp2Col   = (yearLevel === 'first') ? COL.G : COL.F;
+        ibnComp3Col   = COL.E;
+        plComp2Key    = 'midterm';
+        plComp3Key    = 'yearwork';
+        comp2Summary  = 'الميد ترم — المنصة مقابل ابن الهيثم';
+        comp2Label    = 'اختلافات الميد ترم — المنصة مقابل ابن الهيثم';
+        comp2LabelA   = 'المنصة'; comp2LabelB = 'ابن الهيثم';
+        comp3Summary  = 'أعمال السنة — المنصة مقابل ابن الهيثم';
+        comp3Label    = 'اختلافات أعمال السنة — المنصة مقابل ابن الهيثم';
+        comp3LabelA   = 'المنصة'; comp3LabelB = 'ابن الهيثم';
+        showComp3     = true;
+    } else if (laee7a === 'old-theory') {
+        ibnWrittenCol = COL.F;
+        ibnComp2Col   = COL.E;  // yearwork/total in ibn
+        ibnComp3Col   = null;
+        plComp2Key    = 'total25';
+        plComp3Key    = null;
+        comp2Summary  = 'أعمال السنة والميد ترم — المنصة مقابل ابن الهيثم';
+        comp2Label    = 'اختلافات أعمال السنة والميد ترم — المنصة مقابل ابن الهيثم';
+        comp2LabelA   = 'المنصة'; comp2LabelB = 'ابن الهيثم';
+        comp3Summary  = '';
+        comp3Label    = ''; comp3LabelA = ''; comp3LabelB = '';
+        showComp3     = false;
+    } else { // old-practical
+        ibnWrittenCol = COL.G;
+        ibnComp2Col   = COL.E;  // yearwork in ibn
+        ibnComp3Col   = COL.F;  // practical in ibn
+        plComp2Key    = 'yearwork';
+        plComp3Key    = 'practical';
+        comp2Summary  = 'أعمال السنة — المنصة مقابل ابن الهيثم';
+        comp2Label    = 'اختلافات أعمال السنة — المنصة مقابل ابن الهيثم';
+        comp2LabelA   = 'المنصة'; comp2LabelB = 'ابن الهيثم';
+        comp3Summary  = 'العملي — المنصة مقابل ابن الهيثم';
+        comp3Label    = 'اختلافات العملي — المنصة مقابل ابن الهيثم';
+        comp3LabelA   = 'المنصة'; comp3LabelB = 'ابن الهيثم';
+        showComp3     = true;
+    }
+
+    // === Parse Platform ===
     var plMap = {};
     for (var i = 1; i < dataPlatform.length; i++) {
         var r = dataPlatform[i];
         var seat = normId(cell(r, COL.A));
         if (!seat) continue;
-        plMap[seat] = { name: cell(r, COL.B), midterm: cell(r, COL.D), yearwork: cell(r, COL.E) };
+        var entry = { name: cell(r, COL.B) };
+        if (laee7a === 'new') {
+            entry.midterm  = cell(r, COL.D);
+            entry.yearwork = cell(r, COL.E);
+        } else if (laee7a === 'old-theory') {
+            entry.total25  = cell(r, COL.D);
+        } else {
+            entry.yearwork  = cell(r, COL.D);
+            entry.practical = cell(r, COL.E);
+        }
+        plMap[seat] = entry;
     }
 
-    // Parse IbnHaytham: rows from index 2, cols A(0)=seat, D(3)=name, E(4)=year
-    // الفرقة الأولى:  F(5)=تحريري  G(6)=ميد ترم
-    // الفرقة الثانية/الثالثة/الرابعة: G(6)=تحريري  F(5)=ميد ترم
-    var yearLevelVal = document.getElementById('year-level-select').value;
-    var ibnWrittenCol = (yearLevelVal === 'first') ? COL.F : COL.G;
-    var ibnMidtermCol = (yearLevelVal === 'first') ? COL.G : COL.F;
+    // === Parse Ibn Haytham ===
     var ibnMap = {};
     for (var i = 2; i < dataIbnHaytham.length; i++) {
         var r = dataIbnHaytham[i];
         var seat = normId(cell(r, COL.A));
         if (!seat) continue;
-        ibnMap[seat] = { name: cell(r, COL.D), qaid: cell(r, COL.B), yearwork: cell(r, COL.E), written: cell(r, ibnWrittenCol), midterm: cell(r, ibnMidtermCol) };
+        ibnMap[seat] = {
+            name:     cell(r, COL.D),
+            qaid:     cell(r, COL.B),
+            yearwork: cell(r, COL.E),
+            colF:     cell(r, COL.F),
+            colG:     cell(r, COL.G),
+            written:  cell(r, ibnWrittenCol)
+        };
     }
 
-    // Comparison 1: BSheet(K) vs Ibn(F)
-    var seatsW  = Object.keys(bsMap).filter(function(s){ return ibnMap[s]; });
+    // === Comparison 1: BSheet(K) vs Ibn(written col) ===
+    var seatsW = Object.keys(bsMap).filter(function(s){ return ibnMap[s]; });
     var diffW = [], matchW = 0;
     seatsW.forEach(function(s) {
         if (isDiff(bsMap[s].grade, ibnMap[s].written)) {
@@ -548,36 +644,43 @@ function doAnalysis() {
         } else { matchW++; }
     });
 
-    // Comparison 2: Platform(D) vs Ibn(G)
-    var seatsM  = Object.keys(plMap).filter(function(s){ return ibnMap[s]; });
+    // === Comparison 2: Platform(comp2Key) vs Ibn(comp2Col) ===
+    var seatsM = Object.keys(plMap).filter(function(s){ return ibnMap[s]; });
     var diffM = [], matchM = 0;
     seatsM.forEach(function(s) {
-        if (isDiff(plMap[s].midterm, ibnMap[s].midterm)) {
-            diffM.push({ seat:s, name: plMap[s].name || ibnMap[s].name, qaid: ibnMap[s].qaid, a: plMap[s].midterm, b: ibnMap[s].midterm });
+        var plVal  = plMap[s][plComp2Key];
+        var ibnVal = (ibnComp2Col === COL.E) ? ibnMap[s].yearwork
+                   : (ibnComp2Col === COL.F) ? ibnMap[s].colF
+                   : ibnMap[s].colG;
+        if (isDiff(plVal, ibnVal)) {
+            diffM.push({ seat:s, name: plMap[s].name || ibnMap[s].name, qaid: ibnMap[s].qaid, a: plVal, b: ibnVal });
         } else { matchM++; }
     });
 
-    // Comparison 3: Platform(E) vs Ibn(E)
-    var seatsY  = Object.keys(plMap).filter(function(s){ return ibnMap[s]; });
-    var diffY = [], matchY = 0;
-    seatsY.forEach(function(s) {
-        if (isDiff(plMap[s].yearwork, ibnMap[s].yearwork)) {
-            diffY.push({ seat:s, name: plMap[s].name || ibnMap[s].name, qaid: ibnMap[s].qaid, a: plMap[s].yearwork, b: ibnMap[s].yearwork });
-        } else { matchY++; }
-    });
+    // === Comparison 3: Platform(comp3Key) vs Ibn(comp3Col) ===
+    var seatsY = [], diffY = [], matchY = 0;
+    if (showComp3) {
+        seatsY = Object.keys(plMap).filter(function(s){ return ibnMap[s]; });
+        seatsY.forEach(function(s) {
+            var plVal  = plMap[s][plComp3Key];
+            var ibnVal = (ibnComp3Col === COL.E) ? ibnMap[s].yearwork
+                       : (ibnComp3Col === COL.F) ? ibnMap[s].colF
+                       : ibnMap[s].colG;
+            if (isDiff(plVal, ibnVal)) {
+                diffY.push({ seat:s, name: plMap[s].name || ibnMap[s].name, qaid: ibnMap[s].qaid, a: plVal, b: ibnVal });
+            } else { matchY++; }
+        });
+    }
 
-    // Extra students: present in some files but not all three
+    // === Extra students ===
     var allSeats = {};
     Object.keys(bsMap).forEach(function(s)  { allSeats[s] = allSeats[s] || {}; allSeats[s].bs  = bsMap[s].name  || '—'; });
     Object.keys(plMap).forEach(function(s)  { allSeats[s] = allSeats[s] || {}; allSeats[s].pl  = plMap[s].name  || '—'; });
     Object.keys(ibnMap).forEach(function(s) { allSeats[s] = allSeats[s] || {}; allSeats[s].ibn = ibnMap[s].name || '—'; });
-
     var extraStudents = [];
     Object.keys(allSeats).forEach(function(s) {
         var entry = allSeats[s];
-        var inBs  = !!bsMap[s];
-        var inPl  = !!plMap[s];
-        var inIbn = !!ibnMap[s];
+        var inBs  = !!bsMap[s]; var inPl = !!plMap[s]; var inIbn = !!ibnMap[s];
         if (!(inBs && inPl && inIbn)) {
             var name = entry.bs || entry.pl || entry.ibn || '—';
             var sources = [];
@@ -588,24 +691,40 @@ function doAnalysis() {
         }
     });
 
-    // Hirmaan (محـ) and Ghayab Odhr (غ ع) from Ibn Al-Haytham col F
-    var hirmaanList = [];
-    var ghaOdhrList = [];
+    // === Hirmaan & Ghayab Odhr (from Ibn written col) ===
+    var hirmaanList = [], ghaOdhrList = [];
     Object.keys(ibnMap).forEach(function(s) {
         var written = String(ibnMap[s].written).trim();
         var name = ibnMap[s].name || '—';
         var qaid = ibnMap[s].qaid || '—';
-        // Hirmaan: starts with محـ or محـ or just مح
-        if (/^مح/.test(written)) {
-            hirmaanList.push({ seat: s, name: name, qaid: qaid, val: written });
-        }
-        // Ghayab Odhr: غ ع or غع
-        if (/^غ\s*ع/.test(written)) {
-            ghaOdhrList.push({ seat: s, name: name, qaid: qaid, val: written });
-        }
+        if (/^مح/.test(written))    hirmaanList.push({ seat: s, name: name, qaid: qaid, val: written });
+        if (/^غ\s*ع/.test(written)) ghaOdhrList.push({ seat: s, name: name, qaid: qaid, val: written });
     });
 
-    render(seatsW, matchW, diffW, seatsM, matchM, diffM, seatsY, matchY, diffY, hirmaanList, ghaOdhrList);
+    // === Render ===
+    var sections = [
+        {
+            sectionId: 'section-written', titleId: 'title-written', tableId: 'table-written',
+            summaryLabel: 'درجة التحريري — BSheet مقابل ابن الهيثم',
+            baseTitle: 'اختلافات درجة التحريري — BSheet مقابل ابن الهيثم',
+            labelA: 'BSheet', labelB: 'ابن الهيثم',
+            seats: seatsW, match: matchW, diffs: diffW, show: true
+        },
+        {
+            sectionId: 'section-midterm', titleId: 'title-midterm', tableId: 'table-midterm',
+            summaryLabel: comp2Summary, baseTitle: comp2Label,
+            labelA: comp2LabelA, labelB: comp2LabelB,
+            seats: seatsM, match: matchM, diffs: diffM, show: true
+        },
+        {
+            sectionId: 'section-yearwork', titleId: 'title-yearwork', tableId: 'table-yearwork',
+            summaryLabel: comp3Summary, baseTitle: comp3Label,
+            labelA: comp3LabelA, labelB: comp3LabelB,
+            seats: seatsY, match: matchY, diffs: diffY, show: showComp3
+        }
+    ];
+
+    render(sections, hirmaanList, ghaOdhrList);
     renderExtra(extraStudents);
     renderSpecialList('section-hirmaan', 'title-hirmaan', 'table-hirmaan', hirmaanList,
         'طلاب الحرمان (محـ) — ابن الهيثم', 'درجة ابن الهيثم');
@@ -620,24 +739,19 @@ function doAnalysis() {
 // =============================================
 //  RENDER
 // =============================================
-function render(seatsW, matchW, diffW, seatsM, matchM, diffM, seatsY, matchY, diffY, hirmaanList, ghaOdhrList) {
+function render(sections, hirmaanList, ghaOdhrList) {
     // Summary table
-    var rows = [
-        { label:'درجة التحريري — BSheet مقابل ابن الهيثم', total: seatsW.length, match: matchW, diff: diffW.length },
-        { label:'الميد ترم — المنصة مقابل ابن الهيثم',      total: seatsM.length, match: matchM, diff: diffM.length },
-        { label:'أعمال السنة — المنصة مقابل ابن الهيثم',    total: seatsY.length, match: matchY, diff: diffY.length },
-    ];
     var sbodyHtml = '';
-    rows.forEach(function(row) {
-        var diffColor = row.diff > 0 ? 'text-danger fw-bold' : 'text-success fw-bold';
+    sections.forEach(function(sec) {
+        if (!sec.show) return;
+        var diffColor = sec.diffs.length > 0 ? 'text-danger fw-bold' : 'text-success fw-bold';
         sbodyHtml += '<tr>' +
-            '<td class="text-end">' + row.label + '</td>' +
-            '<td>' + row.total + '</td>' +
-            '<td class="text-success fw-bold">' + row.match + '</td>' +
-            '<td class="' + diffColor + '">' + row.diff + '</td>' +
+            '<td class="text-end">' + sec.summaryLabel + '</td>' +
+            '<td>' + sec.seats.length + '</td>' +
+            '<td class="text-success fw-bold">' + sec.match + '</td>' +
+            '<td class="' + diffColor + '">' + sec.diffs.length + '</td>' +
             '</tr>';
     });
-    // Add hirmaan and ghayab rows (span all columns style)
     sbodyHtml += '<tr class="table-warning">' +
         '<td class="text-end fw-bold">عدد طلاب الحرمان (محـ) — ابن الهيثم</td>' +
         '<td colspan="3" class="fw-bold text-danger">' + hirmaanList.length + ' طالب</td>' +
@@ -648,18 +762,19 @@ function render(seatsW, matchW, diffW, seatsM, matchM, diffM, seatsY, matchY, di
         '</tr>';
     document.getElementById('summary-tbody').innerHTML = sbodyHtml;
 
-    // Diff tables — set title with count, then render table
-    function setSection(titleId, tableId, diffs, baseTitle, labelA, labelB) {
-        var countTxt = diffs.length > 0
-            ? ' <span style="font-size:0.82rem;font-weight:600;color:#dc3545;">( اختلافات: ' + diffs.length + ' طالب )</span>'
+    // Diff tables
+    function setSection(sec) {
+        var el = document.getElementById(sec.sectionId);
+        if (!sec.show) { el.style.display = 'none'; return; }
+        el.style.display = 'block';
+        var countTxt = sec.diffs.length > 0
+            ? ' <span style="font-size:0.82rem;font-weight:600;color:#dc3545;">( اختلافات: ' + sec.diffs.length + ' طالب )</span>'
             : ' <span style="font-size:0.82rem;font-weight:600;color:#198754;">( لا يوجد اختلاف )</span>';
-        document.getElementById(titleId).innerHTML = baseTitle + countTxt;
-        document.getElementById(tableId).innerHTML = buildDiffTable(diffs, labelA, labelB);
+        document.getElementById(sec.titleId).innerHTML = sec.baseTitle + countTxt;
+        document.getElementById(sec.tableId).innerHTML = buildDiffTable(sec.diffs, sec.labelA, sec.labelB);
     }
 
-    setSection('title-written',  'table-written',  diffW, 'اختلافات درجة التحريري — BSheet مقابل ابن الهيثم',   'BSheet',   'ابن الهيثم');
-    setSection('title-midterm',  'table-midterm',  diffM, 'اختلافات الميد ترم — المنصة مقابل ابن الهيثم',      'المنصة',   'ابن الهيثم');
-    setSection('title-yearwork', 'table-yearwork', diffY, 'اختلافات أعمال السنة — المنصة مقابل ابن الهيثم',   'المنصة',   'ابن الهيثم');
+    sections.forEach(function(sec) { setSection(sec); });
 }
 
 function buildDiffTable(diffs, labelA, labelB) {
@@ -758,10 +873,43 @@ function renderSpecialList(secId, titleId, tableId, list, baseTitle, colLabel) {
 }
 
 // =============================================
+//  ZEROS (حصر الأصفار)
+// =============================================
+function openZerosPage() {
+    var yearLevelVal = document.getElementById('year-level-select').value;
+    var ibnWrittenCol = (yearLevelVal === 'first') ? COL.F : COL.G;
+
+    var zerosList = [];
+    for (var i = 2; i < dataIbnHaytham.length; i++) {
+        var r = dataIbnHaytham[i];
+        var seat = normId(cell(r, COL.A));
+        if (!seat) continue;
+        var yearwork = cell(r, COL.E);
+        var written  = cell(r, ibnWrittenCol);
+        var qaid     = cell(r, COL.B);
+        var name     = cell(r, COL.D);
+        var yw = parseFloat(String(yearwork).trim());
+        if (!isNaN(yw) && yw === 0) {
+            zerosList.push({ seat: seat, qaid: qaid, name: name, yearwork: yearwork, written: written });
+        }
+    }
+
+    var subjectName = (dataBsheet && dataBsheet.length > 1) ? cell(dataBsheet[1], COL.F) : '';
+    sessionStorage.setItem('zerosData', JSON.stringify({ list: zerosList, subject: subjectName }));
+    window.location.href = 'zeros-report.html';
+}
+
+// =============================================
 //  RESET
 // =============================================
 function resetPage() {
     dataBsheet = dataPlatform = dataIbnHaytham = null;
+    sessionStorage.removeItem('dataBsheet');
+    sessionStorage.removeItem('dataPlatform');
+    sessionStorage.removeItem('dataIbnHaytham');
+    sessionStorage.removeItem('yearLevelVal');
+    sessionStorage.removeItem('zerosData');
+    
     ['file-bsheet','file-platform','file-ibnhaytham'].forEach(function(id){ document.getElementById(id).value = ''; });
     ['status-bsheet','status-platform','status-ibnhaytham'].forEach(function(id){
         var el = document.getElementById(id);
@@ -784,22 +932,75 @@ function resetPage() {
 }
 
 // =============================================
-//  YEAR LEVEL CHANGE
+//  CURRICULUM & YEAR CHANGE
 // =============================================
-function onYearLevelChange() {
-    var sel = document.getElementById('year-level-select');
-    var isFirst = sel.value === 'first';
-    var descEl  = document.getElementById('ibn-col-desc');
+function updateDescriptions() {
+    var laee7a   = document.getElementById('laee7a-select').value;
+    var yearLevel = document.getElementById('year-level-select').value;
+    var isFirst   = (yearLevel === 'first');
 
-    if (isFirst) {
-        descEl.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; عمود E = أعمال السنة &nbsp;|&nbsp; <strong>عمود F = درجة التحريري</strong> &nbsp;|&nbsp; <strong>عمود G = ميد ترم</strong><br>يبدأ الحساب من الصف الثالث';
+    // Show/hide year level selector (only needed for new curriculum)
+    document.getElementById('year-level-group').style.display = (laee7a === 'new') ? 'block' : 'none';
+
+    // Platform description
+    var platTitle = document.getElementById('platform-group-title');
+    var platDesc  = document.getElementById('platform-col-desc');
+    if (laee7a === 'new') {
+        platTitle.textContent = '② أعمال السنة والميد ترم من المنصة';
+        platDesc.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود B = اسم الطالب &nbsp;|&nbsp; <strong>عمود D = ميد ترم</strong> &nbsp;|&nbsp; <strong>عمود E = أعمال السنة</strong><br>يبدأ الحساب من الصف الثاني';
+    } else if (laee7a === 'old-theory') {
+        platTitle.textContent = '② أعمال السنة والميد ترم من المنصة (25 درجة)';
+        platDesc.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود B = اسم الطالب &nbsp;|&nbsp; <strong>عمود D = أعمال السنة + ميد ترم (25 درجة)</strong><br>يبدأ الحساب من الصف الثاني';
     } else {
-        descEl.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; عمود E = أعمال السنة &nbsp;|&nbsp; <strong>عمود G = درجة التحريري</strong> &nbsp;|&nbsp; <strong>عمود F = ميد ترم</strong><br>يبدأ الحساب من الصف الثالث';
+        platTitle.textContent = '② أعمال السنة والعملي من المنصة';
+        platDesc.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود B = اسم الطالب &nbsp;|&nbsp; <strong>عمود D = أعمال السنة</strong> &nbsp;|&nbsp; <strong>عمود E = العملي</strong><br>يبدأ الحساب من الصف الثاني';
+    }
+
+    // Ibn Haytham description
+    var ibnDesc = document.getElementById('ibn-col-desc');
+    if (laee7a === 'new') {
+        if (isFirst) {
+            ibnDesc.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; عمود E = أعمال السنة &nbsp;|&nbsp; <strong>عمود F = درجة التحريري</strong> &nbsp;|&nbsp; <strong>عمود G = ميد ترم</strong><br>يبدأ الحساب من الصف الثالث';
+        } else {
+            ibnDesc.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; عمود E = أعمال السنة &nbsp;|&nbsp; <strong>عمود G = درجة التحريري</strong> &nbsp;|&nbsp; <strong>عمود F = ميد ترم</strong><br>يبدأ الحساب من الصف الثالث';
+        }
+    } else if (laee7a === 'old-theory') {
+        ibnDesc.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; <strong>عمود E = أعمال السنة + ميد ترم</strong> &nbsp;|&nbsp; <strong>عمود F = درجة التحريري</strong><br>يبدأ الحساب من الصف الثالث';
+    } else {
+        ibnDesc.innerHTML = 'عمود A = رقم الجلوس &nbsp;|&nbsp; عمود D = اسم الطالب &nbsp;|&nbsp; <strong>عمود E = أعمال السنة</strong> &nbsp;|&nbsp; <strong>عمود F = العملي</strong> &nbsp;|&nbsp; <strong>عمود G = درجة التحريري</strong><br>يبدأ الحساب من الصف الثالث';
     }
 }
 
-// Init note on page load
-onYearLevelChange();
+function onLaee7aChange() { updateDescriptions(); }
+function onYearLevelChange() { updateDescriptions(); }
+
+// RESTORE STATE
+window.addEventListener('DOMContentLoaded', function() {
+    var cachedBs   = sessionStorage.getItem('dataBsheet');
+    var cachedPl   = sessionStorage.getItem('dataPlatform');
+    var cachedIbn  = sessionStorage.getItem('dataIbnHaytham');
+    var cachedYear = sessionStorage.getItem('yearLevelVal');
+    var cachedLaee = sessionStorage.getItem('laee7aVal');
+
+    if (cachedYear) document.getElementById('year-level-select').value = cachedYear;
+    if (cachedLaee) document.getElementById('laee7a-select').value = cachedLaee;
+    updateDescriptions();
+
+    if (cachedBs && cachedPl && cachedIbn) {
+        dataBsheet     = JSON.parse(cachedBs);
+        dataPlatform   = JSON.parse(cachedPl);
+        dataIbnHaytham = JSON.parse(cachedIbn);
+
+        document.getElementById('status-bsheet').textContent     = '(' + (dataBsheet.length - 1) + ' صف بيانات)';
+        document.getElementById('status-bsheet').className       = 'file-status ok';
+        document.getElementById('status-platform').textContent   = '(' + (dataPlatform.length - 1) + ' صف بيانات)';
+        document.getElementById('status-platform').className     = 'file-status ok';
+        document.getElementById('status-ibnhaytham').textContent = '(' + (dataIbnHaytham.length - 2) + ' صف بيانات)';
+        document.getElementById('status-ibnhaytham').className   = 'file-status ok';
+
+        doAnalysis();
+    }
+});
 </script>
 
 </body>
