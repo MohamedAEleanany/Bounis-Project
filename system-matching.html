@@ -536,7 +536,7 @@ function doAnalysis() {
         var r = dataIbnHaytham[i];
         var seat = normId(cell(r, COL.A));
         if (!seat) continue;
-        ibnMap[seat] = { name: cell(r, COL.D), yearwork: cell(r, COL.E), written: cell(r, ibnWrittenCol), midterm: cell(r, ibnMidtermCol) };
+        ibnMap[seat] = { name: cell(r, COL.D), qaid: cell(r, COL.B), yearwork: cell(r, COL.E), written: cell(r, ibnWrittenCol), midterm: cell(r, ibnMidtermCol) };
     }
 
     // Comparison 1: BSheet(K) vs Ibn(F)
@@ -544,7 +544,7 @@ function doAnalysis() {
     var diffW = [], matchW = 0;
     seatsW.forEach(function(s) {
         if (isDiff(bsMap[s].grade, ibnMap[s].written)) {
-            diffW.push({ seat:s, name: bsMap[s].name || ibnMap[s].name, a: bsMap[s].grade, b: ibnMap[s].written });
+            diffW.push({ seat:s, name: bsMap[s].name || ibnMap[s].name, qaid: ibnMap[s].qaid, a: bsMap[s].grade, b: ibnMap[s].written });
         } else { matchW++; }
     });
 
@@ -553,7 +553,7 @@ function doAnalysis() {
     var diffM = [], matchM = 0;
     seatsM.forEach(function(s) {
         if (isDiff(plMap[s].midterm, ibnMap[s].midterm)) {
-            diffM.push({ seat:s, name: plMap[s].name || ibnMap[s].name, a: plMap[s].midterm, b: ibnMap[s].midterm });
+            diffM.push({ seat:s, name: plMap[s].name || ibnMap[s].name, qaid: ibnMap[s].qaid, a: plMap[s].midterm, b: ibnMap[s].midterm });
         } else { matchM++; }
     });
 
@@ -562,7 +562,7 @@ function doAnalysis() {
     var diffY = [], matchY = 0;
     seatsY.forEach(function(s) {
         if (isDiff(plMap[s].yearwork, ibnMap[s].yearwork)) {
-            diffY.push({ seat:s, name: plMap[s].name || ibnMap[s].name, a: plMap[s].yearwork, b: ibnMap[s].yearwork });
+            diffY.push({ seat:s, name: plMap[s].name || ibnMap[s].name, qaid: ibnMap[s].qaid, a: plMap[s].yearwork, b: ibnMap[s].yearwork });
         } else { matchY++; }
     });
 
@@ -594,13 +594,14 @@ function doAnalysis() {
     Object.keys(ibnMap).forEach(function(s) {
         var written = String(ibnMap[s].written).trim();
         var name = ibnMap[s].name || '—';
+        var qaid = ibnMap[s].qaid || '—';
         // Hirmaan: starts with محـ or محـ or just مح
         if (/^مح/.test(written)) {
-            hirmaanList.push({ seat: s, name: name, val: written });
+            hirmaanList.push({ seat: s, name: name, qaid: qaid, val: written });
         }
         // Ghayab Odhr: غ ع or غع
         if (/^غ\s*ع/.test(written)) {
-            ghaOdhrList.push({ seat: s, name: name, val: written });
+            ghaOdhrList.push({ seat: s, name: name, qaid: qaid, val: written });
         }
     });
 
@@ -670,6 +671,7 @@ function buildDiffTable(diffs, labelA, labelB) {
         rows += '<tr>' +
             '<td>' + (idx+1) + '</td>' +
             '<td><strong>' + esc(d.seat) + '</strong></td>' +
+            '<td class="text-center">' + esc(safeVal(d.qaid)) + '</td>' +
             '<td class="text-end">' + esc(d.name) + '</td>' +
             '<td class="val-a">' + esc(safeVal(d.a)) + '</td>' +
             '<td class="val-b">' + esc(safeVal(d.b)) + '</td>' +
@@ -680,6 +682,7 @@ function buildDiffTable(diffs, labelA, labelB) {
         '<thead><tr>' +
             '<th>#</th>' +
             '<th>رقم الجلوس</th>' +
+            '<th>حالة القيد</th>' +
             '<th>اسم الطالب</th>' +
             '<th>' + esc(labelA) + '</th>' +
             '<th>' + esc(labelB) + '</th>' +
@@ -736,6 +739,7 @@ function renderSpecialList(secId, titleId, tableId, list, baseTitle, colLabel) {
         rows += '<tr>' +
             '<td>' + (idx+1) + '</td>' +
             '<td><strong>' + esc(e.seat) + '</strong></td>' +
+            '<td class="text-center">' + esc(safeVal(e.qaid)) + '</td>' +
             '<td class="text-end">' + esc(e.name) + '</td>' +
             '<td class="fw-bold text-danger">' + esc(e.val) + '</td>' +
             '</tr>';
@@ -745,6 +749,7 @@ function renderSpecialList(secId, titleId, tableId, list, baseTitle, colLabel) {
         '<thead><tr>' +
             '<th>#</th>' +
             '<th>رقم الجلوس</th>' +
+            '<th>حالة القيد</th>' +
             '<th>اسم الطالب</th>' +
             '<th>' + esc(colLabel) + '</th>' +
         '</tr></thead>' +
