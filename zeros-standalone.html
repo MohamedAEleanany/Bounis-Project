@@ -364,13 +364,15 @@ function runReport() {
         ibnWrittenCol = COL.G;
     }
 
-    // البحث عن اسم المادة في الصف الأول (عمود F أو G حسب اللائحة)
+    // اسم المادة من الصف الأول عمود E
     var subjectName = '';
     if (dataIbn.length > 0) {
-        // Try row 0 for subject name — typically in a header cell
-        for (var ci = 0; ci < (dataIbn[0] || []).length; ci++) {
-            var v = String(dataIbn[0][ci] || '').trim();
-            if (v && !/^\d+$/.test(v)) { subjectName = v; break; }
+        var rawSubject = String(dataIbn[0][COL.E] || '').trim();
+        // اعكس الترتيب: خذ الجزء بعد آخر "-" كاسم المادة
+        if (rawSubject.indexOf('-') !== -1) {
+            subjectName = rawSubject.split('-').pop().trim();
+        } else {
+            subjectName = rawSubject;
         }
     }
 
